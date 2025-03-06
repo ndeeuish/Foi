@@ -1,9 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:foi/auth/services/auth_service.dart';
+import 'package:foi/auth/services/login_or_register.dart';
 import 'package:foi/components/my_drawer_tile.dart';
 import 'package:foi/pages/settings_page.dart';
 
 class MyDrawer extends StatelessWidget {
   const MyDrawer({super.key});
+
+  // void logout() {
+  //   final authService = AuthService();
+  //   authService.signOut();
+  //   print("Signed out");
+  // }
+
+  void logout(BuildContext context) {
+    final authService = AuthService();
+    authService.signOut().then((_) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginOrRegister()),
+        (route) => false,
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +32,7 @@ class MyDrawer extends StatelessWidget {
         children: [
           //logo
           Padding(
-            padding: const EdgeInsets.only(top:100.0),
+            padding: const EdgeInsets.only(top: 100.0),
             child: Icon(
               Icons.lock_open_rounded,
               size: 80,
@@ -43,7 +62,7 @@ class MyDrawer extends StatelessWidget {
               Navigator.pop(context);
             },
           ),
-          
+
           //setting list title
           MyDrawerTile(
             text: "S E T T I N G S",
@@ -51,11 +70,9 @@ class MyDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
-                context, 
-                MaterialPageRoute(
-                  builder: (context) => const SettingsPage()
-                )
-              );
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const SettingsPage()));
             },
           ),
 
@@ -64,12 +81,9 @@ class MyDrawer extends StatelessWidget {
           MyDrawerTile(
             text: "L O G O U T",
             icon: Icons.logout,
-            onTap: () {},
+            onTap: () => logout(context),
           ),
-
           const SizedBox(height: 25),
-
-
         ],
       ),
     );

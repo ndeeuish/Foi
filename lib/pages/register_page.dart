@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:foi/auth/services/auth_service.dart';
 import 'package:foi/components/my_button.dart';
 import 'package:foi/components/my_textfiled.dart';
-
 
 class RegisterPage extends StatefulWidget {
   final void Function()? onTap;
@@ -15,7 +15,41 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+
+  // register method
+  void register() async {
+    // get auth service
+    final _authService = AuthService();
+
+    // check if passwords match -> create user
+    if (passwordController.text == confirmPasswordController.text) {
+      // try creating user
+      try {
+        await _authService.signUpWithEmailPassword(
+            emailController.text, passwordController.text);
+      }
+
+      // display errors
+      catch (e) {
+        showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+                  title: Text(e.toString()),
+                ));
+      }
+    }
+
+    // if passwords dont match
+    else {
+      showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+                title: Text("Passwords dont match!"),
+              ));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,8 +103,8 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
 
           const SizedBox(height: 25),
-          //signin button
-          MyButton(text: "Sign Up", onTap: () {}),
+          //signup button
+          MyButton(text: "Sign Up", onTap: register),
 
           const SizedBox(height: 25),
 
@@ -86,13 +120,11 @@ class _RegisterPageState extends State<RegisterPage> {
               const SizedBox(width: 4),
               GestureDetector(
                 onTap: widget.onTap,
-                child: Text(
-                  "Login now",
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.inversePrimary,
-                    fontWeight: FontWeight.bold,
-                  )
-                ),
+                child: Text("Login now",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                      fontWeight: FontWeight.bold,
+                    )),
               )
             ],
           )
