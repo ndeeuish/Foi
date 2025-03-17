@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "296927109384",
+    "project_id": "fooddeliveryflutter-65215",
+    "storage_bucket": "fooddeliveryflutter-65215.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296927109384:android:d332b5ae2ba57a84670cbd",
+        "android_client_info": {
+          "package_name": "com.example.foi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBs_tXfkK_kg7fqFOeMHWHDlIcj6ZsG4H8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

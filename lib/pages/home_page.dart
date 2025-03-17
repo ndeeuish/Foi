@@ -48,7 +48,7 @@ class _HomePageState extends State<HomePage>
 
       return ListView.builder(
         itemCount: categoryMenu.length,
-        physics: const NeverScrollableScrollPhysics(),
+        physics:  NeverScrollableScrollPhysics(),
         padding: EdgeInsets.zero,
         itemBuilder: (context, index) {
           //get individual
@@ -91,10 +91,10 @@ class _HomePageState extends State<HomePage>
                         ),
 
                         //current location
-                        const MyCurrentLocation(),
+                        MyCurrentLocation(),
 
                         //description box
-                        const MyDescriptionBox(),
+                        MyDescriptionBox(),
                       ],
                     ),
                   ),

@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:foi/components/my_drawer_tile.dart';
 import 'package:foi/pages/settings_page.dart';
+import 'package:foi/services/auth/auth_service.dart';
 
 class MyDrawer extends StatelessWidget {
   const MyDrawer({super.key});
+
+  void logout() {
+    final authService = AuthService();
+    authService.SignOut();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +19,7 @@ class MyDrawer extends StatelessWidget {
         children: [
           //logo
           Padding(
-            padding: const EdgeInsets.only(top:100.0),
+            padding: const EdgeInsets.only(top: 100.0),
             child: Icon(
               Icons.lock_open_rounded,
               size: 80,
@@ -43,7 +49,7 @@ class MyDrawer extends StatelessWidget {
               Navigator.pop(context);
             },
           ),
-          
+
           //setting list title
           MyDrawerTile(
             text: "S E T T I N G S",
@@ -51,11 +57,9 @@ class MyDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
-                context, 
-                MaterialPageRoute(
-                  builder: (context) => const SettingsPage()
-                )
-              );
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const SettingsPage()));
             },
           ),
 
@@ -64,12 +68,13 @@ class MyDrawer extends StatelessWidget {
           MyDrawerTile(
             text: "L O G O U T",
             icon: Icons.logout,
-            onTap: () {},
+            onTap: () {
+              logout();
+              Navigator.pop(context);
+            },
           ),
 
           const SizedBox(height: 25),
-
-
         ],
       ),
     );

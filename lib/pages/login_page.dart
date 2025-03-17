@@ -2,31 +2,45 @@ import 'package:flutter/material.dart';
 import 'package:foi/components/my_button.dart';
 import 'package:foi/components/my_textfiled.dart';
 import 'package:foi/pages/home_page.dart';
+import 'package:foi/services/auth/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   final void Function()? onTap;
 
-  const LoginPage({super.key, required this.onTap,});
+  const LoginPage({
+    super.key,
+    required this.onTap,
+  });
 
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController password = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
   //login methot
-  void login(){
-    //authen
+  void login() async {
+    //get instance of auth service
+    final _authService = AuthService();
 
-    //push
-    Navigator.push(
-      context, 
-      MaterialPageRoute(
-        builder: (context) => const HomePage(),
-      ),
-    );
+    // try sign in
+    try {
+      await _authService.signInWithEmailPassword(
+        emailController.text,
+        passwordController.text,
+      );
+    }
+
+    //display error
+    catch (e) {
+      showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+                title: Text(e.toString()),
+              ));
+    }
   }
 
   @override
@@ -66,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
 
           //password
           MyTextField(
-            controller: password,
+            controller: passwordController,
             hintText: "Password",
             obscureText: true,
           ),
@@ -93,13 +107,11 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(width: 4),
               GestureDetector(
                 onTap: widget.onTap,
-                child: Text(
-                  "Register now",
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.inversePrimary,
-                    fontWeight: FontWeight.bold,
-                  )
-                ),
+                child: Text("Register now",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                      fontWeight: FontWeight.bold,
+                    )),
               )
             ],
           )

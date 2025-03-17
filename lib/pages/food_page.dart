@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:foi/components/my_button.dart';
 import 'package:foi/models/food.dart';
+import 'package:foi/models/restaurant.dart';
+import 'package:provider/provider.dart';
 
 class FoodPage extends StatefulWidget {
   final Food food;
   final Map<Addon, bool> selectedAddons = {};
 
-  FoodPage({super.key, required this.food}) {
+  FoodPage({
+    super.key, 
+    required this.food
+    }) {
     // initialize selected addons to be false
     for (Addon addon in food.availableAddons) {
       selectedAddons[addon] = false;
@@ -18,6 +23,24 @@ class FoodPage extends StatefulWidget {
 }
 
 class _FoodPageState extends State<FoodPage> {
+  //method to add to cart
+  void addToCart(Food food, Map<Addon, bool> selectedAddons) {
+
+    //cclose the current food page to go back to menu
+    Navigator.pop(context);
+
+    //format the selected addons
+    List<Addon> currentlySelectedAddons = [];
+    for (Addon addon in widget.food.availableAddons) {
+      if (widget.selectedAddons[addon] == true) {
+        currentlySelectedAddons.add(addon);
+      }
+    }
+
+    //add to cart
+    context.read<Restaurant>().addToCart(food, currentlySelectedAddons);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -46,13 +69,11 @@ class _FoodPageState extends State<FoodPage> {
                       ),
 
                       // food price
-                      Text(
-                        '\$${widget.food.price}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Theme.of(context).colorScheme.primary,
-                        )
-                      ),
+                      Text('\$${widget.food.price}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Theme.of(context).colorScheme.primary,
+                          )),
 
                       const SizedBox(height: 10),
 
@@ -78,7 +99,7 @@ class _FoodPageState extends State<FoodPage> {
                       Container(
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: Theme.of(context).colorScheme.secondary),
+                              color: Theme.of(context).colorScheme.secondary),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: ListView.builder(
@@ -101,7 +122,9 @@ class _FoodPageState extends State<FoodPage> {
                               ),
                               value: widget.selectedAddons[addon],
                               onChanged: (bool? value) {
-                                widget.selectedAddons[addon] = value!;
+                                setState(() {
+                                  widget.selectedAddons[addon] = value!;
+                                });
                               },
                             );
                           },
@@ -113,8 +136,8 @@ class _FoodPageState extends State<FoodPage> {
 
                 // button -> add to cart
                 MyButton(
+                  onTap: () => addToCart(widget.food, widget.selectedAddons),
                   text: "Add to cart",
-                  onTap: () {},
                 ),
 
                 const SizedBox(height: 25),
@@ -129,14 +152,13 @@ class _FoodPageState extends State<FoodPage> {
             opacity: 0.5,
             child: Container(
               margin: const EdgeInsets.only(left: 25),
-              decoration:
-                BoxDecoration(
-                  color: Theme.of(context).colorScheme.secondary,
-                  shape: BoxShape.circle,
-                ),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondary,
+                shape: BoxShape.circle,
+              ),
               child: IconButton(
                 icon: Icon(Icons.arrow_back_rounded),
-                onPressed: () => Navigator.pop(context), 
+                onPressed: () => Navigator.pop(context),
               ),
             ),
           ),

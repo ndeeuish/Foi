@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foi/components/my_button.dart';
 import 'package:foi/components/my_textfiled.dart';
-
+import 'package:foi/services/auth/auth_service.dart';
 
 class RegisterPage extends StatefulWidget {
   final void Function()? onTap;
@@ -13,9 +13,44 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+
+  //register method
+  void register() async {
+    //get auth service
+    final _authService = AuthService();
+
+    //check if password match -> create user
+    if (passwordController.text == confirmPasswordController.text) {
+      try {
+        await _authService.signUpWithEmailPassword(
+          emailController.text,
+          passwordController.text,
+        );
+      } catch (e) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(e.toString()),
+          ),
+        );
+      }
+    }
+
+    // if password don't match -> show error
+    else {
+      showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Passwords don't match!"),
+          ),
+        );
+    }
+
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +105,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
           const SizedBox(height: 25),
           //signin button
-          MyButton(text: "Sign Up", onTap: () {}),
+          MyButton(
+            text: "Sign Up",
+            onTap: register,
+          ),
 
           const SizedBox(height: 25),
 
@@ -86,13 +124,11 @@ class _RegisterPageState extends State<RegisterPage> {
               const SizedBox(width: 4),
               GestureDetector(
                 onTap: widget.onTap,
-                child: Text(
-                  "Login now",
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.inversePrimary,
-                    fontWeight: FontWeight.bold,
-                  )
-                ),
+                child: Text("Login now",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                      fontWeight: FontWeight.bold,
+                    )),
               )
             ],
           )
