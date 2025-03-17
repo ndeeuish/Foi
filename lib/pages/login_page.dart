@@ -21,7 +21,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   final _authService = AuthService();
 
-  // Kiểm tra định dạng email
+  // checking if email is valid
   bool _isValidEmail(String email) {
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     return emailRegex.hasMatch(email);
@@ -32,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
 
-    // Kiểm tra email trống
+    // checking if email is empty
     if (email.isEmpty) {
       showDialog(
         context: context,
@@ -50,7 +50,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    // Kiểm tra cú pháp email
+    // checking email form
     if (!_isValidEmail(email)) {
       showDialog(
         context: context,
@@ -68,7 +68,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    // Kiểm tra mật khẩu trống
+    // checking if password is empty
     if (password.isEmpty) {
       showDialog(
         context: context,
@@ -95,7 +95,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       await _authService.signInWithEmailPassword(email, password);
       if (mounted) {
-        Navigator.pop(context); // Close loading
+        Navigator.pop(context);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),
@@ -103,7 +103,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context); // Close loading
+        Navigator.pop(context);
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -132,7 +132,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       await _authService.signInWithGoogle();
       if (mounted) {
-        Navigator.pop(context); // Close loading
+        Navigator.pop(context);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),
@@ -140,7 +140,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context); // Close loading
+        Navigator.pop(context);
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -169,7 +169,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       await _authService.signInWithFacebook();
       if (mounted) {
-        Navigator.pop(context); // Close loading
+        Navigator.pop(context);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),
@@ -177,7 +177,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context); // Close loading
+        Navigator.pop(context);
         showDialog(
           context: context,
           builder: (context) => AlertDialog(

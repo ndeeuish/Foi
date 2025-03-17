@@ -9,8 +9,6 @@ class AuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
     signInOption: SignInOption.standard,
-    // Buộc chọn tài khoản mỗi lần đăng nhập
-    // Không cần cấu hình thêm prompt ở đây, sẽ xử lý trong signIn
   );
   // get current user
   User? getCurrentUser() {
@@ -55,7 +53,7 @@ class AuthService {
 // sign in with google
   Future<void> signInWithGoogle() async {
     try {
-      // Đăng xuất Google để xóa phiên cũ (tùy chọn)
+      // Đăng xuất Google để xóa phiên cũ
       await _googleSignIn.signOut();
 
       // Gọi signIn để hiển thị màn hình chọn tài khoản
@@ -78,19 +76,26 @@ class AuthService {
     }
   }
 
-  // sign in with facebook
+  // sign in with facebookr
   Future<void> signInWithFacebook() async {
     try {
-      final LoginResult result = await FacebookAuth.instance.login();
-      if (result.status != LoginStatus.success) {
-        throw "Facebook sign-in cancelled or failed.";
-      }
+      // Đăng xuất Facebook
+      await FacebookAuth.instance.logOut();
 
-      final OAuthCredential credential =
-          FacebookAuthProvider.credential(result.accessToken!.tokenString);
-      await _firebaseAuth.signInWithCredential(credential);
+      // Gọi đăng nhập
+      final LoginResult result = await FacebookAuth.instance.login();
+      if (result.status == LoginStatus.success) {
+        final OAuthCredential credential =
+            FacebookAuthProvider.credential(result.accessToken!.tokenString);
+        await _firebaseAuth.signInWithCredential(credential);
+      } else {
+        throw Exception(
+            "Facebook sign-in cancelled or failed: ${result.message}");
+      }
     } on FirebaseAuthException catch (e) {
-      throw e.message ?? "Facebook sign-in failed.";
+      throw Exception(e.message ?? "Facebook sign-in failed.");
+    } catch (e) {
+      throw Exception(e.toString());
     }
   }
 }
