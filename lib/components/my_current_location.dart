@@ -1,37 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:foi/models/restaurant.dart';
+import 'package:provider/provider.dart';
 
 class MyCurrentLocation extends StatelessWidget {
-  const MyCurrentLocation({super.key});
+  MyCurrentLocation({super.key});
 
-  void openLocationSearchBox(BuildContext context){
+  final textController = TextEditingController();
+
+  void openLocationSearchBox(BuildContext context) {
     showDialog(
-      context: context, 
-      builder: (context) => AlertDialog(
-        title: const Text("u location"),
-        content: const TextField(
-          decoration: InputDecoration(hintText: "Search address.."),
-        ),
-        actions: [
-          //cancel btn
-          MaterialButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
+        context: context,
+        builder: (context) => AlertDialog(
+              title: const Text("Your location"),
+              content: TextField(
+                controller: textController,
+                decoration: const InputDecoration(hintText: "Enter address.."),
+              ),
+              actions: [
+                //cancel btn
+                MaterialButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
 
-          //save btn
-          MaterialButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Save"),
-          ),
-        ],
-      )
-    );
+                //save btn
+                MaterialButton(
+                  onPressed: () {
+                    //update delivery address
+                    String newAddress = textController.text;
+                    context
+                        .read<Restaurant>()
+                        .updateDeliveryAddress(newAddress);
+                    Navigator.pop(context);
+                    //textController.clear();
+                  },
+                  child: const Text("Save"),
+                ),
+              ],
+            ));
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(25.0),
+      padding:  EdgeInsets.all(25.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -44,16 +56,21 @@ class MyCurrentLocation extends StatelessWidget {
             child: Row(
               children: [
                 //address
-                Text(
-                  "hanoi hanoi 123",
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.inversePrimary,
-                    fontWeight: FontWeight.bold,
+                Consumer<Restaurant>(
+                  builder: (context, restaurant, child) => Text(
+                    restaurant.deliveryAddress,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ), 
-                  
+                  ),
+                ),
+
                 //dropdown menu
-                Icon(Icons.keyboard_arrow_down_rounded),
+                Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
               ],
             ),
           )

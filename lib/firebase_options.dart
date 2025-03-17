@@ -64,6 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '234863105486',
     projectId: 'fooddelivery-c4d4d',
     storageBucket: 'fooddelivery-c4d4d.firebasestorage.app',
+    androidClientId: '234863105486-qs365m5ib42b3j73oqgiv357j98mmq59.apps.googleusercontent.com',
+    iosClientId: '234863105486-nm2060anvqejiumgsldulu1mk9uqpib1.apps.googleusercontent.com',
     iosBundleId: 'com.example.foi',
   );
 
@@ -73,6 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '234863105486',
     projectId: 'fooddelivery-c4d4d',
     storageBucket: 'fooddelivery-c4d4d.firebasestorage.app',
+    androidClientId: '234863105486-qs365m5ib42b3j73oqgiv357j98mmq59.apps.googleusercontent.com',
+    iosClientId: '234863105486-nm2060anvqejiumgsldulu1mk9uqpib1.apps.googleusercontent.com',
     iosBundleId: 'com.example.foi',
   );
 
@@ -85,4 +89,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'fooddelivery-c4d4d.firebasestorage.app',
     measurementId: 'G-YWYZ6FQHFV',
   );
+
 }

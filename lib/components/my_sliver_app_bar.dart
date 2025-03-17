@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:foi/pages/cart_page.dart';
 
 class MySliverAppBar extends StatelessWidget {
   final Widget child;
   final Widget title;
 
-  const MySliverAppBar({
-    super.key,
-    required this.child, 
-    required this.title
-  });
+  const MySliverAppBar({super.key, required this.child, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +17,15 @@ class MySliverAppBar extends StatelessWidget {
       actions: [
         //cart button
         IconButton(
-          onPressed: () {},
+          onPressed: () {
+            //go to carrt page
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CartPage(),
+              ),
+            );
+          },
           icon: const Icon(Icons.shopping_cart),
         )
       ],

@@ -1,4 +1,7 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:foi/models/cart_item.dart';
+import 'package:intl/intl.dart';
 
 import 'food.dart';
 
@@ -18,7 +21,7 @@ class Restaurant extends ChangeNotifier {
         Addon(name: "Pickle", price: 1.99),
       ],
     ),
-    
+
     Food(
       name: "Chicken Burger",
       description: "A crispy chicken patty with lettuce, mayo, and tomato",
@@ -71,7 +74,7 @@ class Restaurant extends ChangeNotifier {
         Addon(name: "Pickle", price: 1.99),
       ],
     ),
-    
+
     // salad
     Food(
       name: "Caesar Salad",
@@ -142,7 +145,7 @@ class Restaurant extends ChangeNotifier {
         Addon(name: "Cashews", price: 1.19),
       ],
     ),
-    
+
     //sides
     Food(
       name: "French Fries",
@@ -209,7 +212,7 @@ class Restaurant extends ChangeNotifier {
         Addon(name: "Ranch dip", price: 1.29),
       ],
     ),
-    
+
     //drinks
     Food(
       name: "Beer",
@@ -275,7 +278,7 @@ class Restaurant extends ChangeNotifier {
         Addon(name: "Sparkling upgrade", price: 0.99),
       ],
     ),
-    
+
     //desserts
     Food(
       name: "Brownie",
@@ -341,37 +344,152 @@ class Restaurant extends ChangeNotifier {
         Addon(name: "Gold flakes", price: 2.49),
       ],
     ),
-  
   ];
 
-    /*
+  //user cart
+  final List<CartItem> _cart = [];
+
+  //delivery address
+  String _deliveryAddress = " LEu leu";
+  /*
 
     G E T T E R S
 
     */
 
-    List<Food> get menu => _menu;
+  List<Food> get menu => _menu;
+  List<CartItem> get cart => _cart;
+  String get deliveryAddress => _deliveryAddress;
 
-    /*
+  /*
 
     O P E R A T I O N S
 
     */
+  // add to cart
 
-    // add to cart
-    // remove item
-    // get total price cart
-    // get total number items cart
-    // clear cart
+  void addToCart(Food food, List<Addon> selectedAddons) {
+    //see if there is a a cart item already with the same food and selected adđón
+    CartItem? cartItem = _cart.firstWhereOrNull((item) {
+      //check if the food item are the same
+      bool isSameFood = item.food == food;
+      //Check if the list of selected addons is the same
+      bool isSameAddons =
+          ListEquality().equals(item.selectedAddons, selectedAddons);
+      return isSameFood && isSameAddons;
+    });
+    //if item already exists, increase it's quaity
+    if (cartItem != null) {
+      cartItem.quantity++;
+    }
+    //otherwise, add a new cart item to the cart
+    else {
+      _cart.add(
+        CartItem(
+          food: food,
+          selectedAddons: selectedAddons,
+        ),
+      );
+    }
+    notifyListeners();
+  }
 
-    /*
+  // remove from cart
+
+  void removeFromCart(CartItem cartItem) {
+    int cartIndex = _cart.indexOf(cartItem);
+    if (cartIndex != -1) {
+      if (_cart[cartIndex].quantity > 1) {
+        _cart[cartIndex].quantity--;
+      } else {
+        _cart.removeAt(cartIndex);
+      }
+    }
+    notifyListeners();
+  }
+
+  // get total price cart
+  double getTotalPrice() {
+    double total = 0.0;
+    for (CartItem cartItem in _cart) {
+      double itemTotal = cartItem.food.price;
+      for (Addon addon in cartItem.selectedAddons) {
+        itemTotal += addon.price;
+      }
+      total += itemTotal * cartItem.quantity;
+    }
+    return total;
+  }
+
+  // get total number items cart
+  int getTotalItemCount() {
+    int totalItemCount = 0;
+    for (CartItem cartItem in _cart) {
+      totalItemCount += cartItem.quantity;
+    }
+    return totalItemCount;
+  }
+
+  // clear cart
+  void clearCart() {
+    _cart.clear();
+    notifyListeners();
+  }
+
+  //update Delivery address
+  void updateDeliveryAddress(String newAddress) {
+    _deliveryAddress = newAddress;
+    notifyListeners();
+  }
+
+  /* 
 
     H E P L E R S
-    
-    // generate a receipt
-    // format double value into money
-    // format list of addon into string summary
-    
-    */
-  
+
+  */
+  // generate a receipt
+
+  String displayCartReceipt() {
+    final receipt = StringBuffer();
+    receipt.writeln("Here is your receipt.");
+    receipt.writeln();
+
+    //format the date to includeup to seconds only
+    String formattedDate =
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+    receipt.writeln(formattedDate);
+    receipt.writeln();
+    receipt.writeln("-----------");
+    for (final cartItem in _cart) {
+      receipt.writeln(
+          "${cartItem.quantity} x ${cartItem.food.name} - ${_formatPrice(cartItem.food.price)}");
+      if (cartItem.selectedAddons.isNotEmpty) {
+        receipt
+            .writeln("     Add-ons: ${_formatAddons(cartItem.selectedAddons)}");
+      }
+      receipt.writeln();
+    }
+    receipt.writeln("-----------");
+    receipt.writeln();
+    receipt.writeln("Total Items: ${getTotalItemCount()}");
+
+    receipt.writeln("Total Price: ${_formatPrice(getTotalPrice())}");
+
+    receipt.writeln();
+    receipt.writeln("Delivery to: $deliveryAddress");
+
+    return receipt.toString();
+  }
+
+  // format double value into money
+  String _formatPrice(double price) {
+    return "\$${price.toStringAsFixed(2)}";
+  }
+
+  // format list of addon into string summary
+  String _formatAddons(List<Addon> addons) {
+    return addons
+        .map((addon) => "${addon.name} (${_formatPrice(addon.price)})")
+        .join(", ");
+  }
 }

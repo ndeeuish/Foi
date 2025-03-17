@@ -6,13 +6,6 @@ import 'package:foi/pages/settings_page.dart';
 
 class MyDrawer extends StatelessWidget {
   const MyDrawer({super.key});
-
-  // void logout() {
-  //   final authService = AuthService();
-  //   authService.signOut();
-  //   print("Signed out");
-  // }
-
   void logout(BuildContext context) {
     final authService = AuthService();
     authService.signOut().then((_) {
@@ -81,7 +74,10 @@ class MyDrawer extends StatelessWidget {
           MyDrawerTile(
             text: "L O G O U T",
             icon: Icons.logout,
-            onTap: () => logout(context),
+            onTap: () {
+              logout(context);
+              Navigator.pop(context);
+            },
           ),
           const SizedBox(height: 25),
         ],
