@@ -8,10 +8,7 @@ class FoodPage extends StatefulWidget {
   final Food food;
   final Map<Addon, bool> selectedAddons = {};
 
-  FoodPage({
-    super.key, 
-    required this.food
-    }) {
+  FoodPage({super.key, required this.food}) {
     // initialize selected addons to be false
     for (Addon addon in food.availableAddons) {
       selectedAddons[addon] = false;
@@ -25,7 +22,6 @@ class FoodPage extends StatefulWidget {
 class _FoodPageState extends State<FoodPage> {
   //method to add to cart
   void addToCart(Food food, Map<Addon, bool> selectedAddons) {
-
     //cclose the current food page to go back to menu
     Navigator.pop(context);
 
@@ -47,11 +43,12 @@ class _FoodPageState extends State<FoodPage> {
       children: [
         // scaffold UI
         Scaffold(
-          appBar: AppBar(),
+          // appBar: AppBar(),
           body: SingleChildScrollView(
             child: Column(
               children: [
                 // food image
+                const SizedBox(height: 50),
                 Image.asset(widget.food.imagePath),
 
                 Padding(

@@ -47,21 +47,23 @@ class AuthService {
 
   // sign out
   Future<void> signOut() async {
-    return await _firebaseAuth.signOut();
+    try {
+      await FacebookAuth.instance.logOut();
+      await _googleSignIn.signOut();
+      await _firebaseAuth.signOut();
+    } catch (e) {
+      throw Exception("Error during sign out: $e");
+    }
   }
 
 // sign in with google
   Future<void> signInWithGoogle() async {
     try {
-      // Đăng xuất Google để xóa phiên cũ
       await _googleSignIn.signOut();
-
-      // Gọi signIn để hiển thị màn hình chọn tài khoản
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         throw Exception("Google sign-in cancelled by user.");
       }
-
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
@@ -70,27 +72,41 @@ class AuthService {
       );
       await _firebaseAuth.signInWithCredential(credential);
     } on FirebaseAuthException catch (e) {
-      throw e.message ?? "Google sign-in failed.";
+      throw Exception(e.message ?? "Google sign-in failed.");
     } catch (e) {
-      throw e.toString();
+      throw Exception(e.toString());
     }
   }
 
-  // sign in with facebookr
+  // sign in with facebook
   Future<void> signInWithFacebook() async {
     try {
-      // Đăng xuất Facebook
+      // Đăng xuất phiên cũ để đảm bảo không dùng tài khoản trước đó
       await FacebookAuth.instance.logOut();
 
       // Gọi đăng nhập
-      final LoginResult result = await FacebookAuth.instance.login();
+      LoginResult result = await FacebookAuth.instance.login(
+        permissions: ['email', 'public_profile'],
+        loginBehavior: LoginBehavior.dialogOnly,
+      );
+
+      // Nếu bấm Cancel, đăng xuất và thử lại
+      while (result.status == LoginStatus.cancelled) {
+        // Đăng xuất để xóa phiên hiện tại
+        await FacebookAuth.instance.logOut();
+        // Gọi lại dialog đăng nhập
+        result = await FacebookAuth.instance.login(
+          permissions: ['email', 'public_profile'],
+          loginBehavior: LoginBehavior.dialogOnly,
+        );
+      }
+
       if (result.status == LoginStatus.success) {
-        final OAuthCredential credential =
+        final OAuthCredential facebookCredential =
             FacebookAuthProvider.credential(result.accessToken!.token);
-        await _firebaseAuth.signInWithCredential(credential);
+        await _firebaseAuth.signInWithCredential(facebookCredential);
       } else {
-        throw Exception(
-            "Facebook sign-in cancelled or failed: ${result.message}");
+        throw Exception("Facebook sign-in failed: ${result.message}");
       }
     } on FirebaseAuthException catch (e) {
       throw Exception(e.message ?? "Facebook sign-in failed.");

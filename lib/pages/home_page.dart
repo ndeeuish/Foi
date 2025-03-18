@@ -48,7 +48,7 @@ class _HomePageState extends State<HomePage>
 
       return ListView.builder(
         itemCount: categoryMenu.length,
-        physics:  NeverScrollableScrollPhysics(),
+        physics: NeverScrollableScrollPhysics(),
         padding: EdgeInsets.zero,
         itemBuilder: (context, index) {
           //get individual
@@ -72,6 +72,7 @@ class _HomePageState extends State<HomePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
         // appBar: AppBar(
         //   title: Text("homepage"),
         //   backgroundColor: Theme.of(context).colorScheme.surface,

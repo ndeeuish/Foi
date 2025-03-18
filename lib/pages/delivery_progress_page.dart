@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:foi/auth/database/firestore.dart';
 import 'package:foi/models/restaurant.dart';
 import 'package:foi/pages/my_receipt.dart';
-import 'package:foi/services/database/firestore.dart';
 import 'package:provider/provider.dart';
 
 class DeliveryProgressPage extends StatefulWidget {
@@ -12,19 +12,17 @@ class DeliveryProgressPage extends StatefulWidget {
 }
 
 class _DeliveryProgressPageState extends State<DeliveryProgressPage> {
-  //get access to db 
+  //get access to db
   FirestoreService db = FirestoreService();
-  
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     String receipt = context.read<Restaurant>().displayCartReceipt();
-    db.saveOrderToDatabase(receipt);
+    db.saveOrdertoDatabase(receipt);
   }
-  
-  
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,7 +88,6 @@ class _DeliveryProgressPageState extends State<DeliveryProgressPage> {
                 )
               ],
             ),
-
 
             Spacer(),
             //message button

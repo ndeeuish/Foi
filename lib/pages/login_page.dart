@@ -178,19 +178,29 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text("Facebook Sign In Failed"),
-            content: Text(e.toString()),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("OK"),
-              ),
-            ],
-          ),
-        );
+        String errorMessage = e.toString();
+        if (errorMessage.contains("cancelled by user")) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Sign in with Facebook failed. Please try again."),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        } else {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text("Sign in with Facebook failed"),
+              content: Text(errorMessage),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("OK"),
+                ),
+              ],
+            ),
+          );
+        }
       }
     }
   }
