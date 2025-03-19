@@ -99,7 +99,7 @@ class _PaymentPageState extends State<PaymentPage> {
             formKey: formKey,
           ),
 
-          Spacer(),
+          const Spacer(),
 
           MyButton(text: "Pay now", onTap: userTappedPay),
 

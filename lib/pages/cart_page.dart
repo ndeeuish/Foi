@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:foi/components/my_button.dart';
 import 'package:foi/components/my_cart_tile.dart';
+import 'package:foi/models/cart_item.dart';
 import 'package:foi/models/restaurant.dart';
 import 'package:foi/pages/payment_page.dart';
 import 'package:provider/provider.dart';
 
-class CartPage extends StatelessWidget {
+class CartPage extends StatefulWidget {
   const CartPage({super.key});
 
+  @override
+  State<CartPage> createState() => _CartPageState();
+}
+
+class _CartPageState extends State<CartPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<Restaurant>(
@@ -54,45 +60,65 @@ class CartPage extends StatelessWidget {
           ),
           body: Column(
             children: [
-              //list of cart
+              // List of cart
               Expanded(
-                child: Column(
-                  children: [
-                    userCart.isEmpty
-                        ? const Expanded(
-                            child: Center(
-                              child: Text("Cart is empty.."),
-                            ),
-                          )
-                        : Expanded(
-                            child: ListView.builder(
-                                itemCount: userCart.length,
-                                itemBuilder: (context, index) {
-                                  //get individual cart item
-                                  final cartItem = userCart[index];
+                child: userCart.isEmpty
+                    ? const Center(
+                        child: Text("Cart is empty.."),
+                      )
+                    : ListView.builder(
+                        itemCount: userCart.length,
+                        itemBuilder: (context, index) {
+                          // Get individual cart item
+                          final cartItem = userCart[index];
 
-                                  //return cart tile UI
-                                  return MyCartTile(cartItem: cartItem);
-                                }),
-                          ),
-                  ],
-                ),
+                          // Return cart tile with Dismissible
+                          return Dismissible(
+                            key: Key(cartItem.food.name +
+                                index.toString()), // Key duy nhất
+                            direction: DismissDirection
+                                .endToStart, // Vuốt từ phải sang trái
+                            onDismissed: (direction) {
+                              Future.delayed(Duration.zero, () {
+                                // Xóa item
+                                setState(() {
+                                  restaurant.removeFromCart(cartItem);
+                                });
+                              });
+                            },
+                            background: Container(
+                              color: Colors.red,
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 20),
+                              child: const Icon(
+                                Icons.delete,
+                                color: Colors.white,
+                              ),
+                            ),
+                            child: MyCartTile(cartItem: cartItem),
+                          );
+                        },
+                      ),
               ),
 
               //button to pay
-              MyButton(
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 10.0),
+                child: MyButton(
                   text: "Go to checkout",
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PaymentPage(),
-                      ),
-                    );
-                  }),
-              const SizedBox(
-                height: 25,
-              )
+                  onTap: userCart.isEmpty
+                      ? null
+                      : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PaymentPage(),
+                            ),
+                          );
+                        },
+                ),
+              ),
             ],
           ),
         );

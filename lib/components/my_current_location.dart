@@ -43,7 +43,7 @@ class MyCurrentLocation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:  EdgeInsets.all(25.0),
+      padding: EdgeInsets.all(25.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
