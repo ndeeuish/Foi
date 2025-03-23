@@ -23,7 +23,7 @@ class MyCartTile extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  //food image
+                  // Food image
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.asset(
@@ -32,78 +32,74 @@ class MyCartTile extends StatelessWidget {
                       width: 100,
                     ),
                   ),
-
-                  //name and price
+                  // Name and price
                   Column(
                     children: [
-                      //food name
+                      // Food name
                       Text(cartItem.food.name),
-                      //food price
-                      Text("\$${cartItem.food.price}",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
+                      
+                      // Food price
+                      Text(
+                        "\$${cartItem.totalPrice.toStringAsFixed(2)}",
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+
                       ),
-                      ),
-
-
-                      SizedBox(height: 15,),
-
-                      //increment or decrement quantity
+                      const SizedBox(height: 15),
+                      // Increment or decrement quantity
                       QuantitySelector(
-                      quantity: cartItem.quantity,
-                      food: cartItem.food,
-                      onDecremment: () {
-                        restaurant.removeFromCart(cartItem);
-                      },
-                      onIncrement: () {
-                        restaurant.addToCart(
-                            cartItem.food, cartItem.selectedAddons);
-                      }),
+                        quantity: cartItem.quantity,
+                        food: cartItem.food,
+                        onDecrement: () {
+                          restaurant.decreaseQuantity(cartItem);
+                        },
+                        onIncrement: () {
+                          restaurant.increaseQuantity(cartItem);
+                        },
+                      ),
                     ],
                   ),
-
                   const Spacer(),
-
-                  
                 ],
               ),
             ),
-
-            //addons
+            // Addons
             SizedBox(
               height: cartItem.selectedAddons.isEmpty ? 0 : 60,
               child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.only(left : 10, bottom: 10, right: 10),
-                  children: cartItem.selectedAddons
-                      .map(
-                        (addon) => Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: FilterChip(
-                            label: Row(
-                              children: [
-                                //addon name
-                                Text(addon.name),
-                                //addon price
-                                Text(addon.price.toString()),
-                              ],
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.only(left: 10, bottom: 10, right: 10),
+                children: cartItem.selectedAddons
+                    .map(
+                      (addon) => Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: FilterChip(
+                          label: Row(
+                            children: [
+                              // Addon name
+                              Text(addon.name),
+                              // Addon price
+                              Text("\$${addon.price.toStringAsFixed(2)}"),
+                            ],
+                          ),
+                          shape: StadiumBorder(
+                            side: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
                             ),
-                            shape: StadiumBorder(
-                              side: BorderSide(
-                                color: Theme.of(context).colorScheme.primary
-                              )
-                            ),
-                            onSelected: (value) {},
-                            backgroundColor:
-                                Theme.of(context).colorScheme.secondary,
-                            labelStyle: TextStyle(
-                                color:
-                                    Theme.of(context).colorScheme.inversePrimary,
-                                fontSize: 12),
+                          ),
+                          onSelected: (value) {},
+                          backgroundColor:
+                              Theme.of(context).colorScheme.secondary,
+                          labelStyle: TextStyle(
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                            fontSize: 12,
                           ),
                         ),
-                      )
-                      .toList()),
+                      ),
+                    )
+                    .toList(),
+              ),
             ),
           ],
         ),
