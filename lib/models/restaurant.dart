@@ -397,37 +397,33 @@ class Restaurant extends ChangeNotifier {
   // remove from cart
 
   void removeFromCart(CartItem cartItem) {
-    int cartIndex = _cart.indexOf(cartItem);
-    if (cartIndex != -1) {
-      if (_cart[cartIndex].quantity > 1) {
-        _cart[cartIndex].quantity--;
-      } else {
-        _cart.removeAt(cartIndex);
-      }
+    _cart.remove(cartItem);
+    notifyListeners();
+  }
+
+  void increaseQuantity(CartItem cartItem) {
+    cartItem.quantity++;
+    notifyListeners();
+  }
+
+  // Decrease quantity
+  void decreaseQuantity(CartItem cartItem) {
+    if (cartItem.quantity > 1) {
+      cartItem.quantity--;
+    } else {
+      _cart.remove(cartItem);
     }
     notifyListeners();
   }
 
   // get total price cart
   double getTotalPrice() {
-    double total = 0.0;
-    for (CartItem cartItem in _cart) {
-      double itemTotal = cartItem.food.price;
-      for (Addon addon in cartItem.selectedAddons) {
-        itemTotal += addon.price;
-      }
-      total += itemTotal * cartItem.quantity;
-    }
-    return total;
+    return _cart.fold(0, (sum, item) => sum + item.totalPrice);
   }
 
   // get total number items cart
   int getTotalItemCount() {
-    int totalItemCount = 0;
-    for (CartItem cartItem in _cart) {
-      totalItemCount += cartItem.quantity;
-    }
-    return totalItemCount;
+    return _cart.fold(0, (sum, item) => sum + item.quantity);
   }
 
   // clear cart
@@ -453,16 +449,13 @@ class Restaurant extends ChangeNotifier {
     final receipt = StringBuffer();
     receipt.writeln("Here is your receipt.");
     receipt.writeln();
-
-    //format the date to includeup to seconds only
     String formattedDate =
         DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
     receipt.writeln(formattedDate);
-    receipt.writeln();
     receipt.writeln("-----------");
     for (final cartItem in _cart) {
       receipt.writeln(
-          "${cartItem.quantity} x ${cartItem.food.name} - ${_formatPrice(cartItem.food.price)}");
+          "${cartItem.quantity} x ${cartItem.food.name} - ${_formatPrice(cartItem.totalPrice)}");
       if (cartItem.selectedAddons.isNotEmpty) {
         receipt
             .writeln("     Add-ons: ${_formatAddons(cartItem.selectedAddons)}");
@@ -470,14 +463,10 @@ class Restaurant extends ChangeNotifier {
       receipt.writeln();
     }
     receipt.writeln("-----------");
-    receipt.writeln();
     receipt.writeln("Total Items: ${getTotalItemCount()}");
-
     receipt.writeln("Total Price: ${_formatPrice(getTotalPrice())}");
-
     receipt.writeln();
     receipt.writeln("Delivery to: $deliveryAddress");
-
     return receipt.toString();
   }
 

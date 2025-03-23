@@ -5,13 +5,14 @@ class QuantitySelector extends StatelessWidget {
   final int quantity;
   final Food food;
   final VoidCallback onIncrement;
-  final VoidCallback onDecremment;
-  const QuantitySelector(
-      {super.key,
-      required this.quantity,
-      required this.food,
-      required this.onDecremment,
-      required this.onIncrement});
+  final VoidCallback onDecrement;
+  const QuantitySelector({
+    super.key,
+    required this.quantity,
+    required this.food,
+    required this.onDecrement,
+    required this.onIncrement,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,29 +25,33 @@ class QuantitySelector extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          //decrease button
+          // Decrease button
           GestureDetector(
-            onTap: onDecremment,
-            child: Icon(Icons.remove,
-                size: 20, color: Theme.of(context).colorScheme.primary),
+            onTap: onDecrement,
+            child: Icon(
+              Icons.remove,
+              size: 20,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
-
-          //quantity count
+          // Quantity count
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Center(
-              child: 
-              Text(
+              child: Text(
                 quantity.toString(),
+                style: const TextStyle(fontFamily: 'Roboto'),
               ),
             ),
           ),
-
-          //increase button
+          // Increase button
           GestureDetector(
             onTap: onIncrement,
-            child: Icon(Icons.add,
-                size: 20, color: Theme.of(context).colorScheme.primary),
+            child: Icon(
+              Icons.add,
+              size: 20,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
         ],
       ),

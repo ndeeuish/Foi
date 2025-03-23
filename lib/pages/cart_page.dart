@@ -14,94 +14,74 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
+  void _removeFromCart(Restaurant restaurant, CartItem cartItem) {
+    restaurant.removeFromCart(cartItem);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<Restaurant>(
       builder: (context, restaurant, child) {
-        //cart
         final userCart = restaurant.cart;
-
-        //Scaffold Ui
         return Scaffold(
           appBar: AppBar(
-            title: Text("Cart"),
+            title: const Text("Cart"),
             backgroundColor: Colors.transparent,
             foregroundColor: Theme.of(context).colorScheme.inversePrimary,
             actions: [
-              //clear cart button
               IconButton(
                 onPressed: () {
                   showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                            title: const Text(
-                                "Are you sure want to clear the cart?"),
-                            actions: [
-                              //cancel button
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: Text("Cancel"),
-                              ),
-
-                              //yes button
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  restaurant.clearCart();
-                                },
-                                child: Text("Yes"),
-                              ),
-                            ],
-                          ));
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text("Are you sure want to clear the cart?"),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text("Cancel"),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            restaurant.clearCart();
+                          },
+                          child: const Text("Yes"),
+                        ),
+                      ],
+                    ),
+                  );
                 },
                 icon: const Icon(Icons.delete),
-              )
+              ),
             ],
           ),
           body: Column(
             children: [
-              // List of cart
               Expanded(
                 child: userCart.isEmpty
-                    ? const Center(
-                        child: Text("Cart is empty.."),
-                      )
+                    ? const Center(child: Text("Cart is empty.."))
                     : ListView.builder(
                         itemCount: userCart.length,
                         itemBuilder: (context, index) {
-                          // Get individual cart item
                           final cartItem = userCart[index];
-
-                          // Return cart tile with Dismissible
                           return Dismissible(
-                            key: Key(cartItem.food.name +
-                                index.toString()), // Key duy nhất
-                            direction: DismissDirection
-                                .endToStart, // Vuốt từ phải sang trái
+                            key: ValueKey(cartItem),
+                            direction: DismissDirection.endToStart,
                             onDismissed: (direction) {
-                              Future.delayed(Duration.zero, () {
-                                // Xóa item
-                                setState(() {
-                                  restaurant.removeFromCart(cartItem);
-                                });
-                              });
+                              _removeFromCart(restaurant, cartItem);
                             },
                             background: Container(
                               color: Colors.red,
                               alignment: Alignment.centerRight,
                               padding: const EdgeInsets.only(right: 20),
-                              child: const Icon(
-                                Icons.delete,
-                                color: Colors.white,
-                              ),
+                              child:
+                                  const Icon(Icons.delete, color: Colors.white),
                             ),
                             child: MyCartTile(cartItem: cartItem),
                           );
                         },
                       ),
               ),
-
-              //button to pay
               Padding(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16.0, vertical: 10.0),
@@ -109,14 +89,11 @@ class _CartPageState extends State<CartPage> {
                   text: "Go to checkout",
                   onTap: userCart.isEmpty
                       ? null
-                      : () {
-                          Navigator.push(
+                      : () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const PaymentPage(),
-                            ),
-                          );
-                        },
+                                builder: (context) => const PaymentPage()),
+                          ),
                 ),
               ),
             ],
