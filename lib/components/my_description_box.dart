@@ -3,7 +3,8 @@ import 'package:foi/auth/services/delivery_service.dart';
 import 'package:provider/provider.dart';
 
 class MyDescriptionBox extends StatelessWidget {
-  const MyDescriptionBox({super.key});
+  final String address;
+  const MyDescriptionBox({super.key, required this.address});
 
   @override
   Widget build(BuildContext context) {
@@ -11,6 +12,9 @@ class MyDescriptionBox extends StatelessWidget {
         TextStyle(color: Theme.of(context).colorScheme.inversePrimary);
     var mySecondaryTextStyle =
         TextStyle(color: Theme.of(context).colorScheme.primary);
+
+    // Gọi updateDeliveryDetails mà không chờ trong build
+    context.read<DeliveryService>().updateDeliveryDetails(address);
 
     return Container(
       decoration: BoxDecoration(

@@ -27,20 +27,11 @@ class _HomePageState extends State<HomePage>
     super.initState();
     _tabController =
         TabController(length: FoodCategory.values.length, vsync: this);
-
-    context.read<Restaurant>().addListener(() {
-      final address = context.read<Restaurant>().deliveryAddress;
-      context.read<DeliveryService>().updateDeliveryDetails(address);
-    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    context.read<Restaurant>().removeListener(() {
-      final address = context.read<Restaurant>().deliveryAddress;
-      context.read<DeliveryService>().updateDeliveryDetails(address);
-    });
     super.dispose();
   }
 
@@ -91,7 +82,11 @@ class _HomePageState extends State<HomePage>
                     MyCurrentLocation(),
                   ],
                 ),
-                const MyDescriptionBox(),
+                Consumer<Restaurant>(
+                  builder: (context, restaurant, child) => MyDescriptionBox(
+                    address: restaurant.deliveryAddress,
+                  ),
+                ),
               ],
             ),
           ),

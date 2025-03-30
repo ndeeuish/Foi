@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:foi/auth/services/auth_service.dart';
 import 'package:foi/auth/services/login_or_register.dart';
 import 'package:foi/components/my_drawer_tile.dart';
+import 'package:foi/pages/profile_page.dart';
 import 'package:foi/pages/settings_page.dart';
 
 class MyDrawer extends StatelessWidget {
@@ -80,7 +81,10 @@ class MyDrawer extends StatelessWidget {
             text: "P R O F I L E",
             icon: Icons.person,
             onTap: () {
-              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              );
             },
           ),
 
