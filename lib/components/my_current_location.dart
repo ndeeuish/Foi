@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foi/auth/services/delivery_service.dart';
 import 'package:foi/models/restaurant.dart';
 import 'package:provider/provider.dart';
 
@@ -25,7 +26,10 @@ class MyCurrentLocation extends StatelessWidget {
           MaterialButton(
             onPressed: () {
               String newAddress = textController.text;
+
               context.read<Restaurant>().updateDeliveryAddress(newAddress);
+
+              context.read<DeliveryService>().updateDeliveryDetails(newAddress);
               Navigator.pop(context);
               textController.clear();
             },

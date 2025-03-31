@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foi/auth/services/auth_service.dart';
 import 'package:foi/components/my_button.dart';
-import 'package:foi/components/my_textfiled.dart';
+import 'package:foi/components/my_textfield.dart';
 import 'package:foi/pages/home_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -19,26 +19,24 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController resetEmailController = TextEditingController();
   final _authService = AuthService();
 
-  // checking if email is valid
   bool _isValidEmail(String email) {
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     return emailRegex.hasMatch(email);
   }
 
-  // Login with email and password
   void login() async {
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
 
-    // checking if email is empty
     if (email.isEmpty) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text("Error"),
-          content: const Text("Please enter email"),
+          content: const Text("Please enter your email"),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -50,7 +48,6 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    // checking email form
     if (!_isValidEmail(email)) {
       showDialog(
         context: context,
@@ -68,13 +65,12 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    // checking if password is empty
     if (password.isEmpty) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text("Error"),
-          content: const Text("Please enter password"),
+          content: const Text("Please enter your password"),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -108,7 +104,7 @@ class _LoginPageState extends State<LoginPage> {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text("Sign In Failed"),
-            content: Text(e.toString()),
+            content: Text(e.toString().replaceAll("Exception: ", "")),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
@@ -121,7 +117,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Login with Google
   void loginWithGoogle() async {
     showDialog(
       context: context,
@@ -130,6 +125,7 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     try {
+      print("Calling signInWithGoogle...");
       await _authService.signInWithGoogle();
       if (mounted) {
         Navigator.pop(context);
@@ -145,7 +141,7 @@ class _LoginPageState extends State<LoginPage> {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text("Google Sign In Failed"),
-            content: Text(e.toString()),
+            content: Text(e.toString().replaceAll("Exception: ", "")),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
@@ -158,7 +154,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Login with Facebook
   void loginWithFacebook() async {
     showDialog(
       context: context,
@@ -167,6 +162,7 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     try {
+      print("Calling signInWithFacebook...");
       await _authService.signInWithFacebook();
       if (mounted) {
         Navigator.pop(context);
@@ -178,7 +174,7 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
-        String errorMessage = e.toString();
+        String errorMessage = e.toString().replaceAll("Exception: ", "");
         if (errorMessage.contains("cancelled by user")) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -205,6 +201,87 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  void _showForgotPasswordDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Forgot Password"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Enter your email to receive a password reset link:"),
+            const SizedBox(height: 10),
+            TextField(
+              controller: resetEmailController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: "Email",
+                hintText: "Enter your email",
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+              String email = resetEmailController.text.trim();
+              if (email.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Please enter your email"),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+                return;
+              }
+              if (!_isValidEmail(email)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Invalid email format"),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+                return;
+              }
+
+              try {
+                await _authService.resetPassword(email);
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content:
+                          Text("Password reset email sent! Check your inbox."),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                  resetEmailController.clear();
+                }
+              } catch (e) {
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          "Error: ${e.toString().replaceAll("Exception: ", "")}"),
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text("Send"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -215,14 +292,12 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo
                 Icon(
                   Icons.lock_open_rounded,
                   size: 100,
                   color: Theme.of(context).colorScheme.inversePrimary,
                 ),
                 const SizedBox(height: 25),
-                // Slogan
                 Text(
                   "Food Oi",
                   style: TextStyle(
@@ -231,39 +306,54 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 25),
-                // Email
                 MyTextField(
                   controller: emailController,
                   hintText: "Email",
                   obscureText: false,
+                  keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 10),
-                // Password
                 MyTextField(
                   controller: passwordController,
                   hintText: "Password",
                   obscureText: true,
+                  keyboardType: TextInputType.text,
+                ),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      GestureDetector(
+                        onTap: _showForgotPasswordDialog,
+                        child: Text(
+                          "Forgot Password?",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 25),
-                // Sign in button
                 MyButton(
                   text: "Sign In",
                   onTap: login,
                 ),
                 const SizedBox(height: 10),
-                // Sign in with Google
                 MyButton(
                   text: "Sign In with Google",
                   onTap: loginWithGoogle,
                 ),
                 const SizedBox(height: 10),
-                // Sign in with Facebook
                 MyButton(
                   text: "Sign In with Facebook",
                   onTap: loginWithFacebook,
                 ),
                 const SizedBox(height: 25),
-                // Sign up link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
