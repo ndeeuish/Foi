@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:foi/components/my_button.dart';
 import 'package:foi/models/food.dart';
 import 'package:foi/models/restaurant.dart';
+import 'package:foi/pages/cart_page.dart';
 import 'package:provider/provider.dart';
 
 class FoodPage extends StatefulWidget {
@@ -131,10 +132,35 @@ class _FoodPageState extends State<FoodPage> {
                   ),
                 ),
 
-                // button -> add to cart
-                MyButton(
-                  onTap: () => addToCart(widget.food, widget.selectedAddons),
-                  text: "Add to cart",
+                // button 
+                Row(
+                  children: [
+                    // add to cart
+                    Expanded(
+                      child: MyButton(
+                        onTap: () =>
+                            addToCart(widget.food, widget.selectedAddons),
+                        text: "Add to cart",
+                      ),
+                    ),
+
+                    const SizedBox(width: 10),
+
+                    // buy now
+                    Expanded(
+                      child: MyButton(
+                        onTap: () {
+                          addToCart(widget.food, widget.selectedAddons);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const CartPage()),
+                          );
+                        },
+                        text: "Buy now",
+                      ),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 25),

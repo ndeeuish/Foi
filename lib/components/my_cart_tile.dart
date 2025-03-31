@@ -37,12 +37,14 @@ class MyCartTile extends StatelessWidget {
                     children: [
                       // Food name
                       Text(cartItem.food.name),
+                      
                       // Food price
                       Text(
                         "\$${cartItem.totalPrice.toStringAsFixed(2)}",
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                         ),
+
                       ),
                       const SizedBox(height: 15),
                       // Increment or decrement quantity
