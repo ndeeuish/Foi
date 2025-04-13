@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:foi/auth/services/delivery_service.dart';
+//import 'package:foi/auth/services/delivery_service.dart';
 import 'package:foi/components/my_current_location.dart';
 import 'package:foi/components/my_description_box.dart';
 import 'package:foi/components/my_drawer.dart';

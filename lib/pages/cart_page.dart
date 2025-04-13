@@ -23,7 +23,7 @@ class _CartPageState extends State<CartPage> {
   }
 
   String _selectedPaymentMethod = "Cash";
-  
+
   @override
   Widget build(BuildContext context) {
     return Consumer<Restaurant>(
@@ -101,35 +101,20 @@ class _CartPageState extends State<CartPage> {
                       "Select Payment Method:",
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                    RadioListTile(
-                      title: const Text("Cash"),
-                      value: "Cash",
-                      groupValue: _selectedPaymentMethod,
-                      onChanged: (value) {
+                    DropdownButton<String>(
+                      value: _selectedPaymentMethod,
+                      onChanged: (String? newValue) {
                         setState(() {
-                          _selectedPaymentMethod = value.toString();
+                          _selectedPaymentMethod = newValue!;
                         });
                       },
-                    ),
-                    RadioListTile(
-                      title: const Text("Card"),
-                      value: "Card",
-                      groupValue: _selectedPaymentMethod,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedPaymentMethod = value.toString();
-                        });
-                      },
-                    ),
-                    RadioListTile(
-                      title: const Text("E-Wallet"),
-                      value: "E-Wallet",
-                      groupValue: _selectedPaymentMethod,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedPaymentMethod = value.toString();
-                        });
-                      },
+                      items: <String>["Cash", "Card", "E-Wallet"]
+                          .map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
                     ),
                     const SizedBox(height: 10),
                     Row(
@@ -153,7 +138,10 @@ class _CartPageState extends State<CartPage> {
                           : () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => PaymentPage(paymentMethod: _selectedPaymentMethod, totalPrice: totalPrice,),
+                                  builder: (context) => PaymentPage(
+                                    selectedPaymentMethod: _selectedPaymentMethod,
+                                    totalPrice: totalPrice,
+                                  ),
                                 ),
                               ),
                     ),

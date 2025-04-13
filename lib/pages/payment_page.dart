@@ -5,8 +5,13 @@ import 'package:flutter_credit_card/flutter_credit_card.dart';
 
 class PaymentPage extends StatefulWidget {
   final double totalPrice;
+  final String selectedPaymentMethod;
 
-  const PaymentPage({super.key, required this.totalPrice, required String paymentMethod});
+  const PaymentPage({
+    super.key,
+    required this.totalPrice,
+    required this.selectedPaymentMethod,
+  });
 
   @override
   State<PaymentPage> createState() => _PaymentPageState();
@@ -14,7 +19,6 @@ class PaymentPage extends StatefulWidget {
 
 class _PaymentPageState extends State<PaymentPage> {
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  String selectedPaymentMethod = "Card";
   String cardNumber = '';
   String expiryDate = '';
   String cardHolderName = '';
@@ -22,19 +26,19 @@ class _PaymentPageState extends State<PaymentPage> {
   bool isCvvFocused = false;
 
   void userTappedPay() {
-    if (selectedPaymentMethod == "Card" && !formKey.currentState!.validate()) {
+    if (widget.selectedPaymentMethod == "Card" && !formKey.currentState!.validate()) {
       return;
     }
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(selectedPaymentMethod == "Cash" ? "Confirm Order" : "Confirm Payment"),
+        title: Text(widget.selectedPaymentMethod == "Cash" ? "Confirm Order" : "Confirm Payment"),
         content: SingleChildScrollView(
           child: ListBody(
             children: [
-              Text("Payment Method: $selectedPaymentMethod"),
+              Text("Payment Method: ${widget.selectedPaymentMethod}"),
               Text("Total Price: \$${widget.totalPrice.toStringAsFixed(2)}"),
-              if (selectedPaymentMethod == "Card") ...[
+              if (widget.selectedPaymentMethod == "Card") ...[
                 Text("Card Number: $cardNumber"),
                 Text("Expiry Date: $expiryDate"),
                 Text("Card Holder name: $cardHolderName"),
@@ -76,22 +80,7 @@ class _PaymentPageState extends State<PaymentPage> {
       ),
       body: Column(
         children: [
-          DropdownButton<String>(
-            value: selectedPaymentMethod,
-            onChanged: (String? newValue) {
-              setState(() {
-                selectedPaymentMethod = newValue!;
-              });
-            },
-            items: <String>["Card", "Cash", "E-Wallet"]
-                .map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
-            }).toList(),
-          ),
-          if (selectedPaymentMethod == "Card") ...[
+          if (widget.selectedPaymentMethod == "Card") ...[
             CreditCardWidget(
               cardNumber: cardNumber,
               expiryDate: expiryDate,
@@ -118,7 +107,7 @@ class _PaymentPageState extends State<PaymentPage> {
           ],
           const Spacer(),
           MyButton(
-            text: selectedPaymentMethod == "Cash" ? "Confirm Order" : "Pay now", 
+            text: widget.selectedPaymentMethod == "Cash" ? "Confirm Order" : "Pay now",
             onTap: userTappedPay,
           ),
           const SizedBox(height: 25),
