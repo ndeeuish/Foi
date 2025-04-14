@@ -4,6 +4,9 @@ import 'package:foi/auth/services/auth_service.dart';
 import 'package:foi/components/my_change_password_dialog.dart';
 import 'package:foi/components/my_profile_details.dart';
 import 'package:foi/components/profile_header.dart';
+import 'package:foi/models/restaurant.dart';
+import 'package:foi/auth/services/delivery_service.dart';
+import 'package:provider/provider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -64,9 +67,21 @@ class _ProfilePageState extends State<ProfilePage> {
           'phone': _phoneController.text,
           'address': _addressController.text,
         });
+
+        // Update delivery address in Restaurant and DeliveryService
+        if (context.mounted) {
+          context
+              .read<Restaurant>()
+              .updateDeliveryAddress(_addressController.text);
+          context
+              .read<DeliveryService>()
+              .updateDeliveryDetails(_addressController.text);
+        }
+
         await _fetchUserProfile();
         setState(() {
           _isEditing = false;
+          _isLoading = false;
         });
       }
     } catch (e) {

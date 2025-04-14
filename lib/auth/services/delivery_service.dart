@@ -65,6 +65,14 @@ class DeliveryService with ChangeNotifier {
     return (rawFee / 1000).round() * 1000;
   }
 
+  // Format số với dấu chấm
+  String formatNumberWithDots(int number) {
+    return number.toString().replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]}.',
+        );
+  }
+
   Future<String> estimateDeliveryTime(
       LatLng restaurant, LatLng customer) async {
     final distance = await getDistanceFromOSRM(restaurant, customer);
@@ -97,8 +105,8 @@ class DeliveryService with ChangeNotifier {
         final fee = await calculateDeliveryFee(
             defaultRestaurantLocation, customerLocation);
         _estimatedTime = time;
-        _deliveryFee = "$fee VND";
-        print('Updated: Time = $time, Fee = $fee VND');
+        _deliveryFee = "${formatNumberWithDots(fee)} VND";
+        print('Updated: Time = $time, Fee = ${formatNumberWithDots(fee)} VND');
       } else {
         _estimatedTime = "N/A";
         _deliveryFee = "N/A";

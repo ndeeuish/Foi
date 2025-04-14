@@ -24,7 +24,7 @@ class ProfileDetails extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "Profile Details",
+          "Profile details",
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,

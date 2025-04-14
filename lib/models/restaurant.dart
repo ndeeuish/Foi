@@ -432,11 +432,11 @@ class Restaurant extends ChangeNotifier {
     notifyListeners();
   }
 
-  //update Delivery address
   void updateDeliveryAddress(String newAddress) {
     _deliveryAddress = newAddress;
     notifyListeners();
   }
+// ... existing code ...
 
   /* 
 
