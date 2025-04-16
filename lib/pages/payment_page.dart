@@ -3,6 +3,9 @@ import 'package:foi/components/my_button.dart';
 import 'package:foi/pages/delivery_progress_page.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:foi/models/restaurant.dart';
+import 'package:provider/provider.dart';
+
 class PaymentPage extends StatefulWidget {
   final double totalPrice;
   final String selectedPaymentMethod;
@@ -67,6 +70,8 @@ class _PaymentPageState extends State<PaymentPage> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
+              context.read<Restaurant>().updatePaymentStatus("Paid");
+              print('PaymentPage - Payment status updated to: Paid');
               Navigator.push(
                 context,
                 MaterialPageRoute(

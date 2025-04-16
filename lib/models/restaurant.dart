@@ -351,6 +351,10 @@ class Restaurant extends ChangeNotifier {
 
   //delivery address
   String _deliveryAddress = " Enter address.. ";
+
+  //payment status
+  String _paymentStatus = "";
+
   /*
 
     G E T T E R S
@@ -360,6 +364,7 @@ class Restaurant extends ChangeNotifier {
   List<Food> get menu => _menu;
   List<CartItem> get cart => _cart;
   String get deliveryAddress => _deliveryAddress;
+  String get paymentStatus => _paymentStatus;
 
   /*
 
@@ -436,7 +441,11 @@ class Restaurant extends ChangeNotifier {
     _deliveryAddress = newAddress;
     notifyListeners();
   }
-// ... existing code ...
+
+  void updatePaymentStatus(String status) {
+    _paymentStatus = status;
+    notifyListeners();
+  }
 
   /* 
 
@@ -467,6 +476,7 @@ class Restaurant extends ChangeNotifier {
     receipt.writeln("Total Price: ${_formatPrice(getTotalPrice())}");
     receipt.writeln();
     receipt.writeln("Delivery to: $deliveryAddress");
+    receipt.writeln("Payment Status: $_paymentStatus");
     return receipt.toString();
   }
 

@@ -17,10 +17,11 @@ class _DeliveryProgressPageState extends State<DeliveryProgressPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     String receipt = context.read<Restaurant>().displayCartReceipt();
-    db.saveOrderToDatabase(receipt);
+    String paymentStatus = context.read<Restaurant>().paymentStatus;
+    print('DeliveryProgressPage - Payment Status: $paymentStatus');
+    db.saveOrderToDatabase(receipt, paymentStatus);
   }
 
   @override
