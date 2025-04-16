@@ -108,7 +108,7 @@ class _CartPageState extends State<CartPage> {
                           _selectedPaymentMethod = newValue!;
                         });
                       },
-                      items: <String>["Cash", "Card", "E-Wallet"]
+                      items: <String>["Cash", "Card", "VNPAY"]
                           .map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,

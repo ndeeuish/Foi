@@ -1,15 +1,15 @@
 const functions = require("firebase-functions");
-const request = require("request");
+//const request = require("request");
 const moment = require("moment");
 const crypto = require("crypto");
 
 exports.createVNPayPayment = functions.https.onRequest((req, res) => {
     const ipAddr = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
 
-    const tmnCode = "NO2W1JM9"; // Thay bằng mã merchant code của bạn
-    const secretKey = "5W7EUSKQRVFMWJHCDRWUAMM2WMN7AVVC"; // Thay bằng secret key của bạn
+    const tmnCode = "NO2W1JM9"; 
+    const secretKey = "5W7EUSKQRVFMWJHCDRWUAMM2WMN7AVVC"; 
     const vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    const returnUrl = "YOUR_RETURN_URL"; // Thay bằng return URL của bạn
+    const returnUrl = "https://vnpayreturn-fi5yhlbyqq-uc.a.run.app";
     const orderId = moment().format("YYYYMMDDHHmmss");
     const amount = req.body.amount; // Lấy số tiền từ request
     const orderInfo = "Thanh toan don hang " + orderId;

@@ -14,7 +14,7 @@ class FirestoreService {
     try {
       await orders.add({
         'date':
-            Timestamp.fromDate(DateTime.now()), // Sử dụng Timestamp cho ngày
+            Timestamp.fromDate(DateTime.now()),
         'order': receipt,
       });
     } catch (e) {
@@ -26,7 +26,6 @@ class FirestoreService {
   Future<void> saveUserProfile(
       String uid, Map<String, dynamic> userData) async {
     try {
-      // Đảm bảo dữ liệu không chứa giá trị null không mong muốn
       final cleanedData =
           userData.map((key, value) => MapEntry(key, value ?? ''));
       await users.doc(uid).set(cleanedData, SetOptions(merge: true));
@@ -53,7 +52,6 @@ class FirestoreService {
   Future<void> updateUserProfile(
       String uid, Map<String, dynamic> updatedData) async {
     try {
-      // Đảm bảo dữ liệu không chứa giá trị null không mong muốn
       final cleanedData =
           updatedData.map((key, value) => MapEntry(key, value ?? ''));
       await users.doc(uid).update(cleanedData);
