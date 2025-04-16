@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:foi/components/my_button.dart';
 import 'package:foi/pages/delivery_progress_page.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
+import 'package:foi/models/restaurant.dart';
+import 'package:provider/provider.dart';
 
 class PaymentPage extends StatefulWidget {
   final double totalPrice;
 
-  const PaymentPage({super.key, required this.totalPrice, required String paymentMethod});
+  const PaymentPage(
+      {super.key, required this.totalPrice, required String paymentMethod});
 
   @override
   State<PaymentPage> createState() => _PaymentPageState();
@@ -28,7 +31,9 @@ class _PaymentPageState extends State<PaymentPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(selectedPaymentMethod == "Cash" ? "Confirm Order" : "Confirm Payment"),
+        title: Text(selectedPaymentMethod == "Cash"
+            ? "Confirm Order"
+            : "Confirm Payment"),
         content: SingleChildScrollView(
           child: ListBody(
             children: [
@@ -47,6 +52,8 @@ class _PaymentPageState extends State<PaymentPage> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
+              context.read<Restaurant>().updatePaymentStatus("Paid");
+              print('PaymentPage - Payment status updated to: Paid');
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -118,7 +125,7 @@ class _PaymentPageState extends State<PaymentPage> {
           ],
           const Spacer(),
           MyButton(
-            text: selectedPaymentMethod == "Cash" ? "Confirm Order" : "Pay now", 
+            text: selectedPaymentMethod == "Cash" ? "Confirm Order" : "Pay now",
             onTap: userTappedPay,
           ),
           const SizedBox(height: 25),

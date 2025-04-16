@@ -10,14 +10,22 @@ class FirestoreService {
       FirebaseFirestore.instance.collection('users');
 
   // Lưu đơn hàng vào Firestore
-  Future<void> saveOrderToDatabase(String receipt) async {
+  Future<void> saveOrderToDatabase(String receipt, String paymentStatus) async {
     try {
+      print('Saving order to Firebase:');
+      print('Receipt: $receipt');
+      print('Payment Status: $paymentStatus');
+
       await orders.add({
         'date':
             Timestamp.fromDate(DateTime.now()), // Sử dụng Timestamp cho ngày
         'order': receipt,
+        'paymentStatus': paymentStatus,
       });
+
+      print('Order saved successfully');
     } catch (e) {
+      print('Error saving order: $e');
       throw Exception('Failed to save order: $e');
     }
   }
