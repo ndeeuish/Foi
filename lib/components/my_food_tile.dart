@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foi/models/food.dart';
+import 'package:foi/models/restaurant.dart';
+import 'package:provider/provider.dart';
 
 class FoodTile extends StatelessWidget {
   final Food food;
@@ -21,21 +23,24 @@ class FoodTile extends StatelessWidget {
             padding: const EdgeInsets.all(15.0),
             child: Row(
               children: [
-                // food details
+                // Food details
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Food name
                       Text(food.name),
-                      Text(
-                        '\$${food.price}',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
+                      // Food price (formatted as 70.000₫)
+                      Consumer<Restaurant>(
+                        builder: (context, restaurant, child) => Text(
+                          restaurant.formatPrice(food.price),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
                       ),
-                      const SizedBox(
-                        height: 10,
-                      ),
+                      const SizedBox(height: 10),
+                      // Food description
                       Text(
                         food.description,
                         style: TextStyle(
@@ -48,20 +53,20 @@ class FoodTile extends StatelessWidget {
 
                 const SizedBox(width: 15),
 
-                // food image
+                // Food image
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.white, 
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8), 
+                    borderRadius: BorderRadius.circular(8),
                     child: Image.asset(
                       food.imagePath,
-                      width: 100, 
+                      width: 100,
                       height: 100,
-                      fit: BoxFit.cover, 
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
@@ -70,7 +75,7 @@ class FoodTile extends StatelessWidget {
           ),
         ),
 
-        //divider line
+        // Divider line
         Divider(
           color: Theme.of(context).colorScheme.tertiary,
           endIndent: 25,

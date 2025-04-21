@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foi/components/my_quantity_selector.dart';
-import 'package:foi/models/cart_item.dart';
+import 'package:foi/models/cart_item.dart' hide CartItem;
 import 'package:foi/models/restaurant.dart';
 import 'package:provider/provider.dart';
 
@@ -34,17 +34,16 @@ class MyCartTile extends StatelessWidget {
                   ),
                   // Name and price
                   Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Food name
                       Text(cartItem.food.name),
-                      
                       // Food price
                       Text(
-                        "\$${cartItem.totalPrice.toStringAsFixed(2)}",
+                        restaurant.formatPrice(cartItem.totalPrice),
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                         ),
-
                       ),
                       const SizedBox(height: 15),
                       // Increment or decrement quantity
@@ -52,10 +51,11 @@ class MyCartTile extends StatelessWidget {
                         quantity: cartItem.quantity,
                         food: cartItem.food,
                         onDecrement: () {
-                          restaurant.decreaseQuantity(cartItem);
+                          restaurant.removeFromCart(cartItem);
                         },
                         onIncrement: () {
-                          restaurant.increaseQuantity(cartItem);
+                          restaurant.addToCart(
+                              cartItem.food, cartItem.selectedAddons);
                         },
                       ),
                     ],
@@ -79,8 +79,9 @@ class MyCartTile extends StatelessWidget {
                             children: [
                               // Addon name
                               Text(addon.name),
+                              const SizedBox(width: 4),
                               // Addon price
-                              Text("\$${addon.price.toStringAsFixed(2)}"),
+                              Text("(${restaurant.formatPrice(addon.price)})"),
                             ],
                           ),
                           shape: StadiumBorder(

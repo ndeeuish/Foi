@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:foi/components/my_button.dart';
 import 'package:foi/components/my_cart_tile.dart';
-import 'package:foi/models/cart_item.dart';
+import 'package:foi/models/cart_item.dart' hide CartItem;
+import 'package:foi/models/food.dart';
 import 'package:foi/models/restaurant.dart';
 import 'package:foi/pages/payment_page.dart';
 import 'package:provider/provider.dart';
@@ -14,14 +15,25 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
+  // Remove item from cart
   void _removeFromCart(Restaurant restaurant, CartItem cartItem) {
     restaurant.removeFromCart(cartItem);
   }
 
+  // Calculate total price including food and addons
   double _calculateTotal(List<CartItem> cart) {
-    return cart.fold(0, (total, item) => total + (item.food.price * item.quantity));
+    double total = 0.0;
+    for (CartItem item in cart) {
+      double itemTotal = item.food.price;
+      for (Addon addon in item.selectedAddons) {
+        itemTotal += addon.price;
+      }
+      total += itemTotal * item.quantity;
+    }
+    return total;
   }
 
+  // Default payment method
   String _selectedPaymentMethod = "Cash";
 
   @override
@@ -44,7 +56,8 @@ class _CartPageState extends State<CartPage> {
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
-                            title: const Text("Are you sure want to clear the cart?"),
+                            title: const Text(
+                                "Are you sure you want to clear the cart?"),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
@@ -76,7 +89,8 @@ class _CartPageState extends State<CartPage> {
                         itemBuilder: (context, index) {
                           final cartItem = userCart[index];
                           return Dismissible(
-                            key: ValueKey(cartItem.food.name + cartItem.quantity.toString()),
+                            key: ValueKey(cartItem.food.name +
+                                cartItem.quantity.toString()),
                             direction: DismissDirection.endToStart,
                             onDismissed: (direction) {
                               _removeFromCart(restaurant, cartItem);
@@ -85,7 +99,8 @@ class _CartPageState extends State<CartPage> {
                               color: Colors.red,
                               alignment: Alignment.centerRight,
                               padding: const EdgeInsets.only(right: 20),
-                              child: const Icon(Icons.delete, color: Colors.white),
+                              child:
+                                  const Icon(Icons.delete, color: Colors.white),
                             ),
                             child: MyCartTile(cartItem: cartItem),
                           );
@@ -99,7 +114,8 @@ class _CartPageState extends State<CartPage> {
                   children: [
                     const Text(
                       "Select Payment Method:",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     DropdownButton<String>(
                       value: _selectedPaymentMethod,
@@ -122,11 +138,13 @@ class _CartPageState extends State<CartPage> {
                       children: [
                         const Text(
                           "Total:",
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          "\$${totalPrice.toStringAsFixed(2)}",
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          restaurant.formatPrice(totalPrice),
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -139,7 +157,8 @@ class _CartPageState extends State<CartPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => PaymentPage(
-                                    selectedPaymentMethod: _selectedPaymentMethod,
+                                    selectedPaymentMethod:
+                                        _selectedPaymentMethod,
                                     totalPrice: totalPrice,
                                   ),
                                 ),

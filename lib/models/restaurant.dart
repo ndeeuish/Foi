@@ -1,459 +1,411 @@
-import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
-import 'package:foi/models/cart_item.dart';
+import 'package:flutter/foundation.dart';
+import 'package:foi/models/food.dart';
 import 'package:intl/intl.dart';
 
-import 'food.dart';
-
 class Restaurant extends ChangeNotifier {
-  //list food menu
+  // List of food menu items
   final List<Food> _menu = [
-    //burger
+    // Burgers
     Food(
-      name: "Classic cheeseburger",
+      name: "Classic Cheeseburger",
       description: "A beef patty with cheddar, lettuce, tomato and onion",
       imagePath: "lib/images/burgers/classic.png",
-      price: 2.99,
+      price: 35000, // Price in VND, formatted as 35.000₫
       category: FoodCategory.burgers,
       availableAddons: [
-        Addon(name: "Extra cheese", price: 0.99),
-        Addon(name: "Bacon", price: 1.99),
-        Addon(name: "Pickle", price: 1.99),
+        Addon(name: "Extra cheese", price: 5000),
+        Addon(name: "Bacon", price: 10000),
+        Addon(name: "Pickle", price: 5000),
       ],
     ),
-
     Food(
       name: "Chicken Burger",
       description: "A crispy chicken patty with lettuce, mayo, and tomato",
       imagePath: "lib/images/burgers/chicken.png",
-      price: 3.49,
+      price: 40000,
       category: FoodCategory.burgers,
       availableAddons: [
-        Addon(name: "Extra cheese", price: 0.99),
-        Addon(name: "Bacon", price: 1.99),
-        Addon(name: "Pickle", price: 1.99),
+        Addon(name: "Extra cheese", price: 5000),
+        Addon(name: "Bacon", price: 10000),
+        Addon(name: "Pickle", price: 5000),
       ],
     ),
-
     Food(
       name: "BBQ Burger",
       description:
           "Smokey BBQ sauce, crispy bacon with lettuce, tomato, and onion",
       imagePath: "lib/images/burgers/beef.png",
-      price: 3.99,
+      price: 45000,
       category: FoodCategory.burgers,
       availableAddons: [
-        Addon(name: "Extra cheese", price: 0.99),
-        Addon(name: "Bacon", price: 1.99),
-        Addon(name: "Pickle", price: 1.99),
+        Addon(name: "Extra cheese", price: 5000),
+        Addon(name: "Bacon", price: 10000),
+        Addon(name: "Pickle", price: 5000),
       ],
     ),
-
     Food(
       name: "Shrimp Burger",
       description: "A crispy shrimp patty with tartar sauce and lettuce",
       imagePath: "lib/images/burgers/shrimp.png",
-      price: 4.49,
+      price: 50000,
       category: FoodCategory.burgers,
       availableAddons: [
-        Addon(name: "Extra cheese", price: 0.99),
-        Addon(name: "Bacon", price: 1.99),
-        Addon(name: "Pickle", price: 1.99),
+        Addon(name: "Extra cheese", price: 5000),
+        Addon(name: "Bacon", price: 10000),
+        Addon(name: "Pickle", price: 5000),
       ],
     ),
-
     Food(
       name: "Double Burger",
       description: "Two beef patties with cheddar, lettuce, tomato, and onion",
       imagePath: "lib/images/burgers/double.png",
-      price: 5.99,
+      price: 60000,
       category: FoodCategory.burgers,
       availableAddons: [
-        Addon(name: "Extra cheese", price: 0.99),
-        Addon(name: "Bacon", price: 1.99),
-        Addon(name: "Pickle", price: 1.99),
+        Addon(name: "Extra cheese", price: 5000),
+        Addon(name: "Bacon", price: 10000),
+        Addon(name: "Pickle", price: 5000),
       ],
     ),
 
-    // salad
+    // Salads
     Food(
       name: "Caesar Salad",
       description:
           "Fresh romaine lettuce with croutons, parmesan cheese, and Caesar dressing",
       imagePath: "lib/images/salads/caesar.png",
-      price: 3.99,
+      price: 30000,
       category: FoodCategory.salads,
       availableAddons: [
-        Addon(name: "Grilled chicken", price: 1.99),
-        Addon(name: "Extra parmesan", price: 0.99),
-        Addon(name: "Bacon bits", price: 1.49),
+        Addon(name: "Grilled chicken", price: 10000),
+        Addon(name: "Extra parmesan", price: 5000),
+        Addon(name: "Bacon bits", price: 7000),
       ],
     ),
-
     Food(
       name: "Chicken Salad",
       description:
           "Grilled chicken breast on a bed of mixed greens with cherry tomatoes and vinaigrette",
       imagePath: "lib/images/salads/chicken.png",
-      price: 4.49,
+      price: 35000,
       category: FoodCategory.salads,
       availableAddons: [
-        Addon(name: "Extra chicken", price: 1.99),
-        Addon(name: "Avocado", price: 1.49),
-        Addon(name: "Feta cheese", price: 0.99),
+        Addon(name: "Extra chicken", price: 10000),
+        Addon(name: "Avocado", price: 7000),
+        Addon(name: "Feta cheese", price: 5000),
       ],
     ),
-
     Food(
       name: "Mushroom Salad",
       description:
           "Sautéed mushrooms with spinach, arugula, and balsamic dressing",
       imagePath: "lib/images/salads/mushroom.png",
-      price: 4.29,
+      price: 32000,
       category: FoodCategory.salads,
       availableAddons: [
-        Addon(name: "Grilled tofu", price: 1.49),
-        Addon(name: "Walnuts", price: 1.29),
-        Addon(name: "Goat cheese", price: 1.19),
+        Addon(name: "Grilled tofu", price: 7000),
+        Addon(name: "Walnuts", price: 5000),
+        Addon(name: "Goat cheese", price: 6000),
       ],
     ),
-
     Food(
       name: "Spinach Salad",
       description:
           "Fresh baby spinach with sliced strawberries, almonds, and honey mustard dressing",
       imagePath: "lib/images/salads/spinach.png",
-      price: 4.79,
+      price: 35000,
       category: FoodCategory.salads,
       availableAddons: [
-        Addon(name: "Blue cheese", price: 1.29),
-        Addon(name: "Cranberries", price: 0.99),
-        Addon(name: "Grilled chicken", price: 1.99),
+        Addon(name: "Blue cheese", price: 6000),
+        Addon(name: "Cranberries", price: 5000),
+        Addon(name: "Grilled chicken", price: 10000),
       ],
     ),
-
     Food(
       name: "Shrimp Salad",
       description:
           "Grilled shrimp with mixed greens, avocado, and citrus vinaigrette",
       imagePath: "lib/images/salads/shrimp.png",
-      price: 5.49,
+      price: 40000,
       category: FoodCategory.salads,
       availableAddons: [
-        Addon(name: "Extra shrimp", price: 2.49),
-        Addon(name: "Mango slices", price: 1.29),
-        Addon(name: "Cashews", price: 1.19),
+        Addon(name: "Extra shrimp", price: 12000),
+        Addon(name: "Mango slices", price: 6000),
+        Addon(name: "Cashews", price: 5000),
       ],
     ),
 
-    //sides
+    // Sides
     Food(
       name: "French Fries",
       description: "Crispy golden fries with a side of ketchup",
       imagePath: "lib/images/sides/fries.png",
-      price: 2.49,
+      price: 30000,
       category: FoodCategory.sides,
       availableAddons: [
-        Addon(name: "Cheese sauce", price: 0.99),
-        Addon(name: "Bacon bits", price: 1.49),
-        Addon(name: "Garlic butter", price: 0.99),
+        Addon(name: "Cheese sauce", price: 5000),
+        Addon(name: "Bacon bits", price: 7000),
+        Addon(name: "Garlic butter", price: 4000),
       ],
     ),
-
     Food(
       name: "Mac and Cheese",
       description: "Creamy macaroni with melted cheddar cheese",
       imagePath: "lib/images/sides/mac_cheese.png",
-      price: 3.49,
+      price: 20000,
       category: FoodCategory.sides,
       availableAddons: [
-        Addon(name: "Extra cheese", price: 0.99),
-        Addon(name: "Truffle oil", price: 1.99),
-        Addon(name: "Bacon bits", price: 1.49),
+        Addon(name: "Extra cheese", price: 5000),
+        Addon(name: "Truffle oil", price: 8000),
+        Addon(name: "Bacon bits", price: 7000),
       ],
     ),
-
     Food(
       name: "Onion Rings",
       description:
           "Crispy battered onion rings served with a tangy dipping sauce",
       imagePath: "lib/images/sides/onion_rings.png",
-      price: 2.99,
+      price: 18000,
       category: FoodCategory.sides,
       availableAddons: [
-        Addon(name: "Spicy mayo", price: 0.99),
-        Addon(name: "BBQ sauce", price: 0.99),
-        Addon(name: "Extra crispy", price: 0.79),
+        Addon(name: "Spicy mayo", price: 4000),
+        Addon(name: "BBQ sauce", price: 4000),
+        Addon(name: "Extra crispy", price: 3000),
       ],
     ),
-
     Food(
       name: "Egg",
       description: "Perfectly cooked egg, available fried or boiled",
       imagePath: "lib/images/sides/egg.png",
-      price: 1.49,
+      price: 8000,
       category: FoodCategory.sides,
       availableAddons: [
-        Addon(name: "Double egg", price: 0.99),
-        Addon(name: "Soy sauce", price: 0.49),
-        Addon(name: "Chili flakes", price: 0.59),
+        Addon(name: "Double egg", price: 5000),
+        Addon(name: "Soy sauce", price: 2000),
+        Addon(name: "Chili flakes", price: 2000),
       ],
     ),
-
     Food(
       name: "Chips",
       description: "Crunchy potato chips with a variety of flavors",
       imagePath: "lib/images/sides/chips.png",
-      price: 2.29,
+      price: 12000,
       category: FoodCategory.sides,
       availableAddons: [
-        Addon(name: "Cheddar seasoning", price: 0.99),
-        Addon(name: "Spicy seasoning", price: 0.99),
-        Addon(name: "Ranch dip", price: 1.29),
+        Addon(name: "Cheddar seasoning", price: 4000),
+        Addon(name: "Spicy seasoning", price: 4000),
+        Addon(name: "Ranch dip", price: 5000),
       ],
     ),
 
-    //drinks
+    // Drinks
     Food(
       name: "Beer",
       description: "Chilled refreshing beer, perfect for any meal",
       imagePath: "lib/images/drinks/beer.png",
-      price: 3.99,
+      price: 20000,
       category: FoodCategory.drinks,
       availableAddons: [
-        Addon(name: "Extra cold", price: 0.49),
-        Addon(name: "Lemon slice", price: 0.59),
-        Addon(name: "Salt rim", price: 0.69),
+        Addon(name: "Extra cold", price: 2000),
+        Addon(name: "Lemon slice", price: 2000),
+        Addon(name: "Salt rim", price: 3000),
       ],
     ),
-
     Food(
       name: "Fanta",
       description: "Fizzy orange soda with a sweet and tangy taste",
       imagePath: "lib/images/drinks/fanta.png",
-      price: 1.99,
+      price: 15000,
       category: FoodCategory.drinks,
       availableAddons: [
-        Addon(name: "Extra ice", price: 0.29),
-        Addon(name: "Lemon slice", price: 0.49),
-        Addon(name: "Large size", price: 0.99),
+        Addon(name: "Extra ice", price: 2000),
+        Addon(name: "Lemon slice", price: 2000),
+        Addon(name: "Large size", price: 5000),
       ],
     ),
-
     Food(
       name: "Iced Tea",
       description: "Refreshing iced tea with a hint of lemon",
       imagePath: "lib/images/drinks/icetea.png",
-      price: 2.49,
+      price: 12000,
       category: FoodCategory.drinks,
       availableAddons: [
-        Addon(name: "Honey", price: 0.79),
-        Addon(name: "Mint leaves", price: 0.59),
-        Addon(name: "Extra lemon", price: 0.49),
+        Addon(name: "Honey", price: 3000),
+        Addon(name: "Mint leaves", price: 2000),
+        Addon(name: "Extra lemon", price: 2000),
       ],
     ),
-
     Food(
       name: "Coke",
       description: "Classic Coca-Cola with a bold and crisp taste",
       imagePath: "lib/images/drinks/coke.png",
-      price: 1.99,
+      price: 15000,
       category: FoodCategory.drinks,
       availableAddons: [
-        Addon(name: "Extra ice", price: 0.29),
-        Addon(name: "Lime wedge", price: 0.49),
-        Addon(name: "Large size", price: 0.99),
+        Addon(name: "Extra ice", price: 2000),
+        Addon(name: "Lime wedge", price: 2000),
+        Addon(name: "Large size", price: 5000),
       ],
     ),
-
     Food(
       name: "Water",
       description: "Pure and refreshing bottled water",
       imagePath: "lib/images/drinks/water.png",
-      price: 1.49,
+      price: 10000,
       category: FoodCategory.drinks,
       availableAddons: [
-        Addon(name: "Chilled", price: 0.29),
-        Addon(name: "Lemon slice", price: 0.49),
-        Addon(name: "Sparkling upgrade", price: 0.99),
+        Addon(name: "Chilled", price: 2000),
+        Addon(name: "Lemon slice", price: 2000),
+        Addon(name: "Sparkling upgrade", price: 5000),
       ],
     ),
 
-    //desserts
+    // Desserts
     Food(
       name: "Brownie",
       description: "Rich and fudgy chocolate brownie topped with walnuts",
       imagePath: "lib/images/desserts/brownie.png",
-      price: 3.49,
+      price: 30000,
       category: FoodCategory.desserts,
       availableAddons: [
-        Addon(name: "Vanilla ice cream", price: 1.49),
-        Addon(name: "Chocolate syrup", price: 0.99),
-        Addon(name: "Extra walnuts", price: 0.79),
+        Addon(name: "Vanilla ice cream", price: 7000),
+        Addon(name: "Chocolate syrup", price: 4000),
+        Addon(name: "Extra walnuts", price: 3000),
       ],
     ),
-
     Food(
       name: "Cake",
       description: "Soft and moist cake with layers of chocolate and nut",
       imagePath: "lib/images/desserts/cake.png",
-      price: 4.29,
+      price: 25000,
       category: FoodCategory.desserts,
       availableAddons: [
-        Addon(name: "Extra cream", price: 0.99),
-        Addon(name: "Berry topping", price: 1.49),
-        Addon(name: "Chocolate shavings", price: 1.19),
+        Addon(name: "Extra cream", price: 4000),
+        Addon(name: "Berry topping", price: 7000),
+        Addon(name: "Chocolate shavings", price: 5000),
       ],
     ),
-
     Food(
-      name: "Lemon pie",
-      description: "Lemon pie with layers of cream ",
+      name: "Lemon Pie",
+      description: "Lemon pie with layers of cream",
       imagePath: "lib/images/desserts/pie.png",
-      price: 2.99,
+      price: 18000,
       category: FoodCategory.desserts,
       availableAddons: [
-        Addon(name: "Chocolate chips", price: 0.99),
-        Addon(name: "Caramel drizzle", price: 0.99),
-        Addon(name: "Waffle cone", price: 0.79),
+        Addon(name: "Chocolate chips", price: 4000),
+        Addon(name: "Caramel drizzle", price: 4000),
+        Addon(name: "Waffle cone", price: 3000),
       ],
     ),
-
     Food(
       name: "Mousse",
       description: "Light and airy chocolate mousse with a rich texture",
       imagePath: "lib/images/desserts/mousse.png",
-      price: 3.99,
+      price: 22000,
       category: FoodCategory.desserts,
       availableAddons: [
-        Addon(name: "Whipped cream", price: 0.99),
-        Addon(name: "Cocoa powder", price: 0.79),
-        Addon(name: "Raspberry sauce", price: 1.29),
+        Addon(name: "Whipped cream", price: 4000),
+        Addon(name: "Cocoa powder", price: 3000),
+        Addon(name: "Raspberry sauce", price: 5000),
       ],
     ),
-
     Food(
       name: "Macaron",
       description: "Delicate French macarons with a soft and chewy center",
       imagePath: "lib/images/desserts/macaron.png",
-      price: 5.49,
+      price: 30000,
       category: FoodCategory.desserts,
       availableAddons: [
-        Addon(name: "Mixed flavors", price: 1.99),
-        Addon(name: "Extra filling", price: 1.49),
-        Addon(name: "Gold flakes", price: 2.49),
+        Addon(name: "Mixed flavors", price: 10000),
+        Addon(name: "Extra filling", price: 7000),
+        Addon(name: "Gold flakes", price: 12000),
       ],
     ),
   ];
-
-  //user cart
+  // User cart
   final List<CartItem> _cart = [];
 
-  //delivery address
-  String _deliveryAddress = " Enter address.. ";
+  // Delivery address
+  String _deliveryAddress = "";
 
-  //payment status
-  String _paymentStatus = "";
+  // Payment status
+  String _paymentStatus = "Pending";
 
-  /*
+// Delivery fee (in VND)
+  double _deliveryFee = 10000;
 
-    G E T T E R S
-
-    */
-
+  // Getters
   List<Food> get menu => _menu;
   List<CartItem> get cart => _cart;
   String get deliveryAddress => _deliveryAddress;
   String get paymentStatus => _paymentStatus;
 
-  /*
+  // Format price in VND
+  String formatPrice(double price) {
+    final formatter = NumberFormat.currency(
+      locale: 'vi_VN',
+      symbol: '₫',
+      decimalDigits: 0,
+    );
+    return formatter.format(price);
+  }
 
-    O P E R A T I O N S
-
-    */
-  // add to cart
-
+  // Add to cart
   void addToCart(Food food, List<Addon> selectedAddons) {
-    //see if there is a a cart item already with the same food and selected adđón
-    CartItem? cartItem = _cart.firstWhereOrNull((item) {
-      //check if the food item are the same
-      bool isSameFood = item.food == food;
-      //Check if the list of selected addons is the same
-      bool isSameAddons =
-          ListEquality().equals(item.selectedAddons, selectedAddons);
-      return isSameFood && isSameAddons;
-    });
-    //if item already exists, increase it's quaity
-    if (cartItem != null) {
+    // Check if the food is already in the cart
+    CartItem? cartItem = _cart.firstWhere(
+      (item) {
+        bool isSameFood = item.food == food;
+        bool isSameAddons = listEquals(item.selectedAddons, selectedAddons);
+        return isSameFood && isSameAddons;
+      },
+      orElse: () => CartItem(food: food, selectedAddons: selectedAddons),
+    );
+
+    if (_cart.contains(cartItem)) {
       cartItem.quantity++;
-    }
-    //otherwise, add a new cart item to the cart
-    else {
-      _cart.add(
-        CartItem(
-          food: food,
-          selectedAddons: selectedAddons,
-        ),
-      );
-    }
-    notifyListeners();
-  }
-
-  // remove from cart
-
-  void removeFromCart(CartItem cartItem) {
-    _cart.remove(cartItem);
-    notifyListeners();
-  }
-
-  void increaseQuantity(CartItem cartItem) {
-    cartItem.quantity++;
-    notifyListeners();
-  }
-
-  // Decrease quantity
-  void decreaseQuantity(CartItem cartItem) {
-    if (cartItem.quantity > 1) {
-      cartItem.quantity--;
     } else {
-      _cart.remove(cartItem);
+      _cart.add(cartItem);
     }
     notifyListeners();
   }
 
-  // get total price cart
-  double getTotalPrice() {
-    return _cart.fold(0, (sum, item) => sum + item.totalPrice);
+  // Remove from cart
+  void removeFromCart(CartItem cartItem) {
+    if (_cart.contains(cartItem)) {
+      if (cartItem.quantity > 1) {
+        cartItem.quantity--;
+      } else {
+        _cart.remove(cartItem);
+      }
+      notifyListeners();
+    }
   }
 
-  // get total number items cart
+  double getBasePrice() {
+    double total = 0.0;
+    for (CartItem cartItem in _cart) {
+      double itemTotal = cartItem.food.price;
+      for (Addon addon in cartItem.selectedAddons) {
+        itemTotal += addon.price;
+      }
+      total += itemTotal * cartItem.quantity;
+    }
+    return total;
+  }
+
+  // Calculate total price (base + delivery fee)
+  double getTotalPrice() {
+    double basePrice = getBasePrice();
+    return basePrice + _deliveryFee;
+  }
+
+  // Get total item count
   int getTotalItemCount() {
     return _cart.fold(0, (sum, item) => sum + item.quantity);
   }
 
-  // clear cart
-  void clearCart() {
-    _cart.clear();
-    notifyListeners();
-  }
-
-  void updateDeliveryAddress(String newAddress) {
-    _deliveryAddress = newAddress;
-    notifyListeners();
-  }
-
-  void updatePaymentStatus(String status) {
-    _paymentStatus = status;
-    notifyListeners();
-  }
-
-  /* 
-
-    H E P L E R S
-
-  */
-  // generate a receipt
-
+  // Generate receipt
   String displayCartReceipt() {
     final receipt = StringBuffer();
     receipt.writeln("Here is your receipt.");
@@ -464,7 +416,7 @@ class Restaurant extends ChangeNotifier {
     receipt.writeln("-----------");
     for (final cartItem in _cart) {
       receipt.writeln(
-          "${cartItem.quantity} x ${cartItem.food.name} - ${_formatPrice(cartItem.totalPrice)}");
+          "${cartItem.quantity} x ${cartItem.food.name} - ${formatPrice(cartItem.totalPrice)}");
       if (cartItem.selectedAddons.isNotEmpty) {
         receipt
             .writeln("     Add-ons: ${_formatAddons(cartItem.selectedAddons)}");
@@ -473,22 +425,62 @@ class Restaurant extends ChangeNotifier {
     }
     receipt.writeln("-----------");
     receipt.writeln("Total Items: ${getTotalItemCount()}");
-    receipt.writeln("Total Price: ${_formatPrice(getTotalPrice())}");
+    receipt.writeln("Delivery Fee: ${formatPrice(_deliveryFee)}");
+    receipt.writeln("Total Price: ${formatPrice(getTotalPrice())}");
     receipt.writeln();
     receipt.writeln("Delivery to: $deliveryAddress");
     receipt.writeln("Payment Status: $_paymentStatus");
     return receipt.toString();
   }
 
-  // format double value into money
-  String _formatPrice(double price) {
-    return "\$${price.toStringAsFixed(2)}";
-  }
-
-  // format list of addon into string summary
+  // Format addons for receipt
   String _formatAddons(List<Addon> addons) {
     return addons
-        .map((addon) => "${addon.name} (${_formatPrice(addon.price)})")
+        .map((addon) => "${addon.name} (${formatPrice(addon.price)})")
         .join(", ");
+  }
+
+  // Update delivery address
+  void updateDeliveryAddress(String newAddress) {
+    _deliveryAddress = newAddress;
+    notifyListeners();
+  }
+
+  // Update payment status
+  void updatePaymentStatus(String status) {
+    _paymentStatus = status;
+    notifyListeners();
+  }
+
+// set delivery fee
+  void setDeliveryFee(double fee) {
+    _deliveryFee = fee;
+    print('Restaurant - Set delivery fee: ${formatPrice(_deliveryFee)}');
+    notifyListeners();
+  }
+
+  // Clear cart
+  void clearCart() {
+    _cart.clear();
+    notifyListeners();
+  }
+}
+
+// Cart item class
+class CartItem {
+  Food food;
+  List<Addon> selectedAddons;
+  int quantity;
+
+  CartItem({
+    required this.food,
+    required this.selectedAddons,
+    this.quantity = 1,
+  });
+
+  double get totalPrice {
+    double addonsPrice =
+        selectedAddons.fold(0, (sum, addon) => sum + addon.price);
+    return (food.price + addonsPrice) * quantity;
   }
 }

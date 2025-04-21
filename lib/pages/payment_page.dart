@@ -5,6 +5,7 @@ import 'package:flutter_credit_card/flutter_credit_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:foi/models/restaurant.dart';
 import 'package:provider/provider.dart';
+// import 'package:foi/models/cart_item.dart' hide CartItem; // Uncomment if cart_item.dart exists
 
 class PaymentPage extends StatefulWidget {
   final double totalPrice;
@@ -28,24 +29,43 @@ class _PaymentPageState extends State<PaymentPage> {
   String cvvCode = '';
   bool isCvvFocused = false;
 
+  // Handle pay/confirm order tap
   void userTappedPay() async {
+    // Check if delivery address is valid
+    final restaurant = context.read<Restaurant>();
+    if (restaurant.deliveryAddress.isEmpty ||
+        restaurant.deliveryAddress == "Enter your address") {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter the delivery address"),
+        ),
+      );
+      return;
+    }
+
+    // Validate card details for Card payment
     if (widget.selectedPaymentMethod == "Card" &&
         !formKey.currentState!.validate()) {
       return;
     }
 
+    // Handle VNPAY payment
     if (widget.selectedPaymentMethod == "VNPAY") {
-      const sandboxUrl = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'; 
+      const sandboxUrl = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
       if (await canLaunchUrl(Uri.parse(sandboxUrl))) {
-        await launchUrl(Uri.parse(sandboxUrl), mode: LaunchMode.externalApplication);
+        await launchUrl(
+          Uri.parse(sandboxUrl),
+          mode: LaunchMode.externalApplication,
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Không thể mở VNPAY")),
+          const SnackBar(content: Text("Cannot open VNPAY")),
         );
       }
-      return; 
+      return;
     }
 
+    // Show confirmation dialog
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -56,11 +76,12 @@ class _PaymentPageState extends State<PaymentPage> {
           child: ListBody(
             children: [
               Text("Payment Method: ${widget.selectedPaymentMethod}"),
-              Text("Total Price: \$${widget.totalPrice.toStringAsFixed(2)}"),
+              Text(
+                  "Total Price: ${restaurant.formatPrice(widget.totalPrice)}"), // Use VND formatting
               if (widget.selectedPaymentMethod == "Card") ...[
                 Text("Card Number: $cardNumber"),
                 Text("Expiry Date: $expiryDate"),
-                Text("Card Holder name: $cardHolderName"),
+                Text("Card Holder Name: $cardHolderName"),
                 Text("CVV: $cvvCode"),
               ],
             ],
@@ -75,15 +96,15 @@ class _PaymentPageState extends State<PaymentPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => DeliveryProgressPage(),
+                  builder: (context) => const DeliveryProgressPage(),
                 ),
               );
             },
-            child: Text("Yes"),
+            child: const Text("Yes"),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("Cancel"),
+            child: const Text("Cancel"),
           ),
         ],
       ),
@@ -123,6 +144,7 @@ class _PaymentPageState extends State<PaymentPage> {
                       expiryDate = data.expiryDate;
                       cardHolderName = data.cardHolderName;
                       cvvCode = data.cvvCode;
+                      isCvvFocused = data.isCvvFocused;
                     });
                   },
                   formKey: formKey,
@@ -136,7 +158,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 children: [
                   Icon(Icons.qr_code_scanner, size: 100, color: Colors.blue),
                   SizedBox(height: 10),
-                  Text("Bạn sẽ được chuyển hướng đến cổng thanh toán VNPAY"),
+                  Text("You will be redirected to the VNPAY payment gateway"),
                 ],
               ),
             ),

@@ -25,20 +25,24 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
+    // Initialize TabController with the number of food categories
     _tabController =
         TabController(length: FoodCategory.values.length, vsync: this);
   }
 
   @override
   void dispose() {
+    // Dispose TabController to prevent memory leaks
     _tabController.dispose();
     super.dispose();
   }
 
+  // Filter menu by category
   List<Food> _filterMenuByCategory(FoodCategory category, List<Food> fullMenu) {
     return fullMenu.where((food) => food.category == category).toList();
   }
 
+  // Generate widgets for each category tab
   List<Widget> getFoodInThisCategory(List<Food> fullMenu) {
     return FoodCategory.values.map((category) {
       List<Food> categoryMenu = _filterMenuByCategory(category, fullMenu);
@@ -79,6 +83,7 @@ class _HomePageState extends State<HomePage>
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Current location input
                     MyCurrentLocation(),
                   ],
                 ),
@@ -94,6 +99,7 @@ class _HomePageState extends State<HomePage>
         body: Consumer<Restaurant>(
           builder: (context, restaurant, child) => TabBarView(
             controller: _tabController,
+            // Display food items for each category
             children: getFoodInThisCategory(restaurant.menu),
           ),
         ),

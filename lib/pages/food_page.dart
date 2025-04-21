@@ -10,7 +10,7 @@ class FoodPage extends StatefulWidget {
   final Map<Addon, bool> selectedAddons = {};
 
   FoodPage({super.key, required this.food}) {
-    // initialize selected addons to be false
+    // Initialize selected addons as false
     for (Addon addon in food.availableAddons) {
       selectedAddons[addon] = false;
     }
@@ -21,12 +21,12 @@ class FoodPage extends StatefulWidget {
 }
 
 class _FoodPageState extends State<FoodPage> {
-  //method to add to cart
+  // Method to add to cart
   void addToCart(Food food, Map<Addon, bool> selectedAddons) {
-    //cclose the current food page to go back to menu
+    // Close the food page to return to menu
     Navigator.pop(context);
 
-    //format the selected addons
+    // Format selected addons
     List<Addon> currentlySelectedAddons = [];
     for (Addon addon in widget.food.availableAddons) {
       if (widget.selectedAddons[addon] == true) {
@@ -34,7 +34,7 @@ class _FoodPageState extends State<FoodPage> {
       }
     }
 
-    //add to cart
+    // Add to cart
     context.read<Restaurant>().addToCart(food, currentlySelectedAddons);
   }
 
@@ -42,13 +42,12 @@ class _FoodPageState extends State<FoodPage> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // scaffold UI
+        // Main interface
         Scaffold(
-          // appBar: AppBar(),
           body: SingleChildScrollView(
             child: Column(
               children: [
-                // food image
+                // Food image
                 const SizedBox(height: 50),
                 Image.asset(widget.food.imagePath),
 
@@ -57,7 +56,7 @@ class _FoodPageState extends State<FoodPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // food name
+                      // Food name
                       Text(
                         widget.food.name,
                         style: const TextStyle(
@@ -66,16 +65,20 @@ class _FoodPageState extends State<FoodPage> {
                         ),
                       ),
 
-                      // food price
-                      Text('\$${widget.food.price}',
+                      // Food price (formatted as 70.000₫)
+                      Consumer<Restaurant>(
+                        builder: (context, restaurant, child) => Text(
+                          restaurant.formatPrice(widget.food.price),
                           style: TextStyle(
                             fontSize: 16,
                             color: Theme.of(context).colorScheme.primary,
-                          )),
+                          ),
+                        ),
+                      ),
 
                       const SizedBox(height: 10),
 
-                      // food description
+                      // Food description
                       Text(widget.food.description),
 
                       const SizedBox(height: 10),
@@ -83,13 +86,15 @@ class _FoodPageState extends State<FoodPage> {
                       Divider(color: Theme.of(context).colorScheme.secondary),
 
                       const SizedBox(height: 10),
-                      // addon
+
+                      // Addon section
                       Text(
                         "Add-on",
                         style: TextStyle(
-                            color: Theme.of(context).colorScheme.inversePrimary,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold),
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
 
                       const SizedBox(height: 10),
@@ -97,7 +102,8 @@ class _FoodPageState extends State<FoodPage> {
                       Container(
                         decoration: BoxDecoration(
                           border: Border.all(
-                              color: Theme.of(context).colorScheme.secondary),
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: ListView.builder(
@@ -106,24 +112,29 @@ class _FoodPageState extends State<FoodPage> {
                           padding: EdgeInsets.zero,
                           itemCount: widget.food.availableAddons.length,
                           itemBuilder: (context, index) {
-                            // get individual addon
+                            // Get individual addon
                             Addon addon = widget.food.availableAddons[index];
 
-                            // return check box
-                            return CheckboxListTile(
-                              title: Text(addon.name),
-                              subtitle: Text(
-                                '\$${addon.price}',
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary,
+                            // Display checkbox for addon
+                            return Consumer<Restaurant>(
+                              builder: (context, restaurant, child) =>
+                                  CheckboxListTile(
+                                title: Text(addon.name),
+                                subtitle: Text(
+                                  restaurant.formatPrice(addon
+                                      .price), // Format addon price, e.g., 23.000₫
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                  ),
                                 ),
+                                value: widget.selectedAddons[addon],
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    widget.selectedAddons[addon] = value!;
+                                  });
+                                },
                               ),
-                              value: widget.selectedAddons[addon],
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  widget.selectedAddons[addon] = value!;
-                                });
-                              },
                             );
                           },
                         ),
@@ -132,10 +143,10 @@ class _FoodPageState extends State<FoodPage> {
                   ),
                 ),
 
-                // button 
+                // Action buttons
                 Row(
                   children: [
-                    // add to cart
+                    // Add to cart
                     Expanded(
                       child: MyButton(
                         onTap: () =>
@@ -146,7 +157,7 @@ class _FoodPageState extends State<FoodPage> {
 
                     const SizedBox(width: 10),
 
-                    // buy now
+                    // Buy now
                     Expanded(
                       child: MyButton(
                         onTap: () {
@@ -154,7 +165,8 @@ class _FoodPageState extends State<FoodPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const CartPage()),
+                              builder: (context) => const CartPage(),
+                            ),
                           );
                         },
                         text: "Buy now",
@@ -169,7 +181,7 @@ class _FoodPageState extends State<FoodPage> {
           ),
         ),
 
-        // back button
+        // Back button
         SafeArea(
           child: Opacity(
             opacity: 0.5,
@@ -180,7 +192,7 @@ class _FoodPageState extends State<FoodPage> {
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: Icon(Icons.arrow_back_rounded),
+                icon: const Icon(Icons.arrow_back_rounded),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
