@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:foi/models/restaurant.dart';
 import 'package:provider/provider.dart';
 // import 'package:foi/models/cart_item.dart' hide CartItem; // Uncomment if cart_item.dart exists
+import 'package:foi/payment/vnpay/vnpay_service.dart'; // Import VNPayService
 
 class PaymentPage extends StatefulWidget {
   final double totalPrice;
@@ -29,9 +30,13 @@ class _PaymentPageState extends State<PaymentPage> {
   String cvvCode = '';
   bool isCvvFocused = false;
 
-  // Handle pay/confirm order tap
+  final _vnpayService = VNPayService(); // Tạo instance của VNPayService
+
   void userTappedPay() async {
-    // Check if delivery address is valid
+    print(
+        'PaymentPage - userTappedPay() called. Payment method: ${widget.selectedPaymentMethod}');
+
+    // Kiểm tra địa chỉ giao hàng
     final restaurant = context.read<Restaurant>();
     if (restaurant.deliveryAddress.isEmpty ||
         restaurant.deliveryAddress == "Enter your address") {
@@ -43,29 +48,56 @@ class _PaymentPageState extends State<PaymentPage> {
       return;
     }
 
-    // Validate card details for Card payment
+    // Kiểm tra form hợp lệ nếu là thanh toán bằng thẻ
     if (widget.selectedPaymentMethod == "Card" &&
         !formKey.currentState!.validate()) {
+      print('PaymentPage - Card payment - Form is invalid. Returning.');
       return;
     }
 
-    // Handle VNPAY payment
+    // Xử lý thanh toán VNPAY
     if (widget.selectedPaymentMethod == "VNPAY") {
-      const sandboxUrl = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
-      if (await canLaunchUrl(Uri.parse(sandboxUrl))) {
-        await launchUrl(
-          Uri.parse(sandboxUrl),
-          mode: LaunchMode.externalApplication,
-        );
+      print(
+          'PaymentPage - VNPAY selected. Calling VNPay service to get payment URL.');
+      final paymentUrl = await _vnpayService.getPaymentUrl(widget.totalPrice);
+
+      if (paymentUrl != null) {
+        print('PaymentPage - VNPAY - Payment URL received: $paymentUrl');
+        try {
+          final Uri uri = Uri.parse(paymentUrl);
+          print('PaymentPage - VNPAY - Parsed URI: $uri');
+          if (await canLaunchUrl(uri)) {
+            print('PaymentPage - VNPAY - URL can be launched. Launching...');
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+            print('PaymentPage - VNPAY - URL launched successfully.');
+          } else {
+            print('PaymentPage - VNPAY - URL cannot be launched.');
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text("Không thể mở URL thanh toán VNPAY")),
+            );
+          }
+        } catch (e) {
+          print(
+              'PaymentPage - VNPAY - An error occurred while launching URL: $e');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text("Đã xảy ra lỗi khi mở URL thanh toán")),
+          );
+        }
       } else {
+        print('PaymentPage - VNPAY - Failed to get payment URL from service.');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Cannot open VNPAY")),
+          const SnackBar(content: Text("Lỗi khi tạo URL thanh toán VNPAY")),
         );
       }
+      print('PaymentPage - VNPAY - Finished processing.');
       return;
     }
 
-    // Show confirmation dialog
+    // Hiển thị hộp thoại xác nhận
+    print(
+        'PaymentPage - Payment method is ${widget.selectedPaymentMethod}. Showing confirmation dialog.');
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -76,8 +108,7 @@ class _PaymentPageState extends State<PaymentPage> {
           child: ListBody(
             children: [
               Text("Payment Method: ${widget.selectedPaymentMethod}"),
-              Text(
-                  "Total Price: ${restaurant.formatPrice(widget.totalPrice)}"), // Use VND formatting
+              Text("Total Price: ${restaurant.formatPrice(widget.totalPrice)}"),
               if (widget.selectedPaymentMethod == "Card") ...[
                 Text("Card Number: $cardNumber"),
                 Text("Expiry Date: $expiryDate"),
@@ -90,6 +121,7 @@ class _PaymentPageState extends State<PaymentPage> {
         actions: [
           TextButton(
             onPressed: () {
+              print('PaymentPage - Confirmation dialog - Yes button pressed.');
               Navigator.pop(context);
               context.read<Restaurant>().updatePaymentStatus("Paid");
               print('PaymentPage - Payment status updated to: Paid');
@@ -103,7 +135,11 @@ class _PaymentPageState extends State<PaymentPage> {
             child: const Text("Yes"),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              print(
+                  'PaymentPage - Confirmation dialog - Cancel button pressed.');
+              Navigator.pop(context);
+            },
             child: const Text("Cancel"),
           ),
         ],
