@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:foi/auth/database/firestore.dart';
 import 'package:foi/auth/services/auth_service.dart';
+import 'package:foi/auth/services/delivery_service.dart';
 import 'package:foi/components/my_change_password_dialog.dart';
 import 'package:foi/components/my_profile_details.dart';
 import 'package:foi/components/profile_header.dart';
 import 'package:foi/models/restaurant.dart';
-import 'package:foi/auth/services/delivery_service.dart';
 import 'package:provider/provider.dart';
+import 'package:latlong2/latlong.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -21,6 +22,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Map<String, dynamic>? _userProfile;
   bool _isLoading = true;
   bool _isEditing = false;
+  bool _isSaving = false;
   String? _errorMessage;
 
   TextEditingController _nameController = TextEditingController();
@@ -58,7 +60,8 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _saveProfile() async {
     try {
       setState(() {
-        _isLoading = true;
+        _isSaving = true;
+        _errorMessage = null;
       });
       final user = _authService.getCurrentUser();
       if (user != null) {
@@ -68,27 +71,55 @@ class _ProfilePageState extends State<ProfilePage> {
           'address': _addressController.text,
         });
 
-        // Update delivery address in Restaurant and DeliveryService
+        // Update delivery address, fee, and time
         if (context.mounted) {
-          context
-              .read<Restaurant>()
-              .updateDeliveryAddress(_addressController.text);
-          context
-              .read<DeliveryService>()
-              .updateDeliveryDetails(_addressController.text);
+          final deliveryService = context.read<DeliveryService>();
+          final restaurant = context.read<Restaurant>();
+          final newAddress = _addressController.text.trim();
+          if (newAddress.isNotEmpty) {
+            // Geocode address
+            final customerLocation =
+                await deliveryService.getCoordinatesFromAddress(newAddress);
+            // Calculate fee and time
+            final results = await deliveryService.calculateDeliveryFeeAndTime(
+              deliveryService.defaultRestaurantLocation,
+              customerLocation,
+            );
+            final fee = (results['fee'] as int).toDouble();
+            final time = results['time'] as String;
+            // Update Restaurant
+            restaurant.setDeliveryFee(fee);
+            restaurant.setEstimatedTime(time);
+            restaurant.updateDeliveryAddress(newAddress);
+            // Update DeliveryService
+            await deliveryService.updateDeliveryDetailsWithLatLng(
+                newAddress, customerLocation);
+            print(
+                'ProfilePage - Updated address: $newAddress, fee: ${restaurant.formatPrice(fee)}, time: $time');
+          } else {
+            // Reset if address is empty
+            restaurant.setDeliveryFee(12000);
+            restaurant.setEstimatedTime("N/A");
+            restaurant.updateDeliveryAddress("");
+            await deliveryService.updateDeliveryDetails("");
+          }
         }
 
         await _fetchUserProfile();
-        setState(() {
-          _isEditing = false;
-          _isLoading = false;
-        });
+        if (context.mounted) {
+          setState(() {
+            _isEditing = false;
+            _isSaving = false;
+          });
+        }
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString().replaceAll("Exception: ", "");
-        _isLoading = false;
-      });
+      if (context.mounted) {
+        setState(() {
+          _errorMessage = e.toString().replaceAll("Exception: ", "");
+          _isSaving = false;
+        });
+      }
     }
   }
 
@@ -117,7 +148,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
         ],
       ),
-      body: _isLoading
+      body: _isLoading || _isSaving
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
               ? Center(
@@ -168,7 +199,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 onPressed: _saveProfile,
                                 child: const Text(
                                   "Save",
-                                  style: const TextStyle(color: Colors.black),
+                                  style: TextStyle(color: Colors.black),
                                 ),
                               ),
                               const SizedBox(width: 10),
@@ -188,7 +219,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     backgroundColor: Colors.grey),
                                 child: const Text(
                                   "Cancel",
-                                  style: const TextStyle(color: Colors.black),
+                                  style: TextStyle(color: Colors.black),
                                 ),
                               ),
                             ],

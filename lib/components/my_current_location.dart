@@ -44,39 +44,53 @@ class MyCurrentLocation extends StatelessWidget {
                 if (newAddress.isEmpty || newAddress == "Enter your address") {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text("Please enter a valid delivery address")),
+                        content: Text("Please enter a valid address")),
                   );
                   return;
                 }
-                setState(() => isLoading = true);
+                if (context.mounted) {
+                  setState(() => isLoading = true);
+                  print('MyCurrentLocation - Showing loading');
+                }
                 try {
                   // Geocode address to LatLng
                   final deliveryService = context.read<DeliveryService>();
+                  final restaurant = context.read<Restaurant>();
                   final customerLocation = await deliveryService
                       .getCoordinatesFromAddress(newAddress);
-                  // Calculate delivery fee
-                  final fee = (await deliveryService.calculateDeliveryFee(
+                  // Calculate fee and time
+                  final results =
+                      await deliveryService.calculateDeliveryFeeAndTime(
                     deliveryService.defaultRestaurantLocation,
                     customerLocation,
-                  ))
-                      .toDouble();
-                  print(
-                      'MyCurrentLocation - Calculated fee: ${context.read<Restaurant>().formatPrice(fee)} for address: $newAddress');
-                  // Set delivery fee in Restaurant
-                  context.read<Restaurant>().setDeliveryFee(fee);
-                  // Update address in Restaurant
-                  context.read<Restaurant>().updateDeliveryAddress(newAddress);
-                  // Update DeliveryService details with cached LatLng
+                  );
+                  final fee = (results['fee'] as int).toDouble();
+                  final time = results['time'] as String;
+                  // Update Restaurant
+                  restaurant.setDeliveryFee(fee);
+                  restaurant.setEstimatedTime(time);
+                  restaurant.updateDeliveryAddress(newAddress);
+                  // Update DeliveryService
                   await deliveryService.updateDeliveryDetailsWithLatLng(
                       newAddress, customerLocation);
-                  Navigator.pop(context);
-                  textController.clear();
+                  print(
+                      'MyCurrentLocation - Updated address: $newAddress, fee: ${restaurant.formatPrice(fee)}, time: $time');
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    textController.clear();
+                    print('MyCurrentLocation - Closing dialog');
+                  }
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Error processing address: $e")),
-                  );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Error: $e")),
+                    );
+                  }
                 } finally {
-                  setState(() => isLoading = false);
+                  if (context.mounted) {
+                    setState(() => isLoading = false);
+                    print('MyCurrentLocation - Hiding loading');
+                  }
                 }
               },
               child: const Text("Save"),

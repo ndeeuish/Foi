@@ -9,11 +9,17 @@ import 'package:provider/provider.dart';
 import 'package:foi/payment/vnpay/vnpay_service.dart'; // Import VNPayService
 
 class PaymentPage extends StatefulWidget {
+  final double basePrice;
+  final double discountAmount;
+  final String? voucherCode;
   final double totalPrice;
   final String selectedPaymentMethod;
 
   const PaymentPage({
     super.key,
+    required this.basePrice,
+    required this.discountAmount,
+    this.voucherCode,
     required this.totalPrice,
     required this.selectedPaymentMethod,
   });
@@ -108,7 +114,18 @@ class _PaymentPageState extends State<PaymentPage> {
           child: ListBody(
             children: [
               Text("Payment Method: ${widget.selectedPaymentMethod}"),
-              Text("Total Price: ${restaurant.formatPrice(widget.totalPrice)}"),
+              Text("Cart Total: ${restaurant.formatPrice(widget.basePrice)}"),
+              if (widget.discountAmount > 0) ...[
+                Text("Voucher: ${widget.voucherCode ?? ''}"),
+                Text(
+                  "Discount: -${restaurant.formatPrice(widget.discountAmount)}",
+                  style: const TextStyle(color: Colors.green),
+                ),
+              ],
+              Text(
+                "Final Total: ${restaurant.formatPrice(widget.totalPrice)}",
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
               if (widget.selectedPaymentMethod == "Card") ...[
                 Text("Card Number: $cardNumber"),
                 Text("Expiry Date: $expiryDate"),
@@ -123,7 +140,7 @@ class _PaymentPageState extends State<PaymentPage> {
             onPressed: () {
               print('PaymentPage - Confirmation dialog - Yes button pressed.');
               Navigator.pop(context);
-              context.read<Restaurant>().updatePaymentStatus("Paid");
+              restaurant.updatePaymentStatus("Paid");
               print('PaymentPage - Payment status updated to: Paid');
               Navigator.push(
                 context,
@@ -149,6 +166,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
   @override
   Widget build(BuildContext context) {
+    final restaurant = context.read<Restaurant>();
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -158,6 +176,55 @@ class _PaymentPageState extends State<PaymentPage> {
       ),
       body: Column(
         children: [
+          // Price breakdown
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text("Cart Total:", style: TextStyle(fontSize: 16)),
+                    Text(
+                      restaurant.formatPrice(widget.basePrice),
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+                if (widget.discountAmount > 0)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Discount (${widget.voucherCode ?? ''}):",
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      Text(
+                        "-${restaurant.formatPrice(widget.discountAmount)}",
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.green),
+                      ),
+                    ],
+                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Final Total:",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      restaurant.formatPrice(widget.totalPrice),
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
           if (widget.selectedPaymentMethod == "Card")
             Column(
               children: [

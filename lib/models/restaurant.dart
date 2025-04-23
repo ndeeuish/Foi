@@ -5,12 +5,11 @@ import 'package:intl/intl.dart';
 class Restaurant extends ChangeNotifier {
   // List of food menu items
   final List<Food> _menu = [
-    // Burgers
     Food(
       name: "Classic Cheeseburger",
       description: "A beef patty with cheddar, lettuce, tomato and onion",
       imagePath: "lib/images/burgers/classic.png",
-      price: 35000, // Price in VND, formatted as 35.000₫
+      price: 35000,
       category: FoodCategory.burgers,
       availableAddons: [
         Addon(name: "Extra cheese", price: 5000),
@@ -67,8 +66,6 @@ class Restaurant extends ChangeNotifier {
         Addon(name: "Pickle", price: 5000),
       ],
     ),
-
-    // Salads
     Food(
       name: "Caesar Salad",
       description:
@@ -134,8 +131,6 @@ class Restaurant extends ChangeNotifier {
         Addon(name: "Cashews", price: 5000),
       ],
     ),
-
-    // Sides
     Food(
       name: "French Fries",
       description: "Crispy golden fries with a side of ketchup",
@@ -197,8 +192,6 @@ class Restaurant extends ChangeNotifier {
         Addon(name: "Ranch dip", price: 5000),
       ],
     ),
-
-    // Drinks
     Food(
       name: "Beer",
       description: "Chilled refreshing beer, perfect for any meal",
@@ -259,8 +252,6 @@ class Restaurant extends ChangeNotifier {
         Addon(name: "Sparkling upgrade", price: 5000),
       ],
     ),
-
-    // Desserts
     Food(
       name: "Brownie",
       description: "Rich and fudgy chocolate brownie topped with walnuts",
@@ -322,6 +313,7 @@ class Restaurant extends ChangeNotifier {
       ],
     ),
   ];
+
   // User cart
   final List<CartItem> _cart = [];
 
@@ -331,14 +323,25 @@ class Restaurant extends ChangeNotifier {
   // Payment status
   String _paymentStatus = "Pending";
 
-// Delivery fee (in VND)
+  // Delivery fee (kept for future use)
   double _deliveryFee = 10000;
+
+  // Estimated delivery time (kept for future use)
+  String _estimatedTime = "N/A";
+
+  // Voucher code and discount amount
+  String? _voucherCode;
+  double _discountAmount = 0.0;
 
   // Getters
   List<Food> get menu => _menu;
   List<CartItem> get cart => _cart;
   String get deliveryAddress => _deliveryAddress;
   String get paymentStatus => _paymentStatus;
+  double get deliveryFee => _deliveryFee;
+  String get estimatedTime => _estimatedTime;
+  String? get voucherCode => _voucherCode;
+  double get discountAmount => _discountAmount;
 
   // Format price in VND
   String formatPrice(double price) {
@@ -352,7 +355,6 @@ class Restaurant extends ChangeNotifier {
 
   // Add to cart
   void addToCart(Food food, List<Addon> selectedAddons) {
-    // Check if the food is already in the cart
     CartItem? cartItem = _cart.firstWhere(
       (item) {
         bool isSameFood = item.food == food;
@@ -378,10 +380,13 @@ class Restaurant extends ChangeNotifier {
       } else {
         _cart.remove(cartItem);
       }
+      // Clear voucher when cart changes
+      clearVoucher();
       notifyListeners();
     }
   }
 
+  // Calculate base price (cart items + addons)
   double getBasePrice() {
     double total = 0.0;
     for (CartItem cartItem in _cart) {
@@ -394,10 +399,11 @@ class Restaurant extends ChangeNotifier {
     return total;
   }
 
-  // Calculate total price (base + delivery fee)
+  // Calculate total price (base - discount)
   double getTotalPrice() {
     double basePrice = getBasePrice();
-    return basePrice + _deliveryFee;
+    double total = basePrice - _discountAmount;
+    return total < 0 ? 0 : total;
   }
 
   // Get total item count
@@ -425,7 +431,10 @@ class Restaurant extends ChangeNotifier {
     }
     receipt.writeln("-----------");
     receipt.writeln("Total Items: ${getTotalItemCount()}");
-    receipt.writeln("Delivery Fee: ${formatPrice(_deliveryFee)}");
+    if (_voucherCode != null) {
+      receipt.writeln("Voucher Applied: $_voucherCode");
+      receipt.writeln("Discount: ${formatPrice(_discountAmount)}");
+    }
     receipt.writeln("Total Price: ${formatPrice(getTotalPrice())}");
     receipt.writeln();
     receipt.writeln("Delivery to: $deliveryAddress");
@@ -452,16 +461,41 @@ class Restaurant extends ChangeNotifier {
     notifyListeners();
   }
 
-// set delivery fee
+  // Set estimated delivery time (kept for future)
+  void setEstimatedTime(String time) {
+    _estimatedTime = time;
+    print('Restaurant - Set estimated time: $_estimatedTime');
+    notifyListeners();
+  }
+
+  // Set delivery fee (kept for future)
   void setDeliveryFee(double fee) {
     _deliveryFee = fee;
     print('Restaurant - Set delivery fee: ${formatPrice(_deliveryFee)}');
     notifyListeners();
   }
 
+  // Apply voucher
+  void applyVoucher(String code, double discount) {
+    _voucherCode = code;
+    _discountAmount = discount;
+    print(
+        'Restaurant - Applied voucher "$code": Discount = ${formatPrice(discount)}');
+    notifyListeners();
+  }
+
+  // Clear voucher
+  void clearVoucher() {
+    _voucherCode = null;
+    _discountAmount = 0.0;
+    print('Restaurant - Cleared voucher');
+    notifyListeners();
+  }
+
   // Clear cart
   void clearCart() {
     _cart.clear();
+    clearVoucher();
     notifyListeners();
   }
 }
