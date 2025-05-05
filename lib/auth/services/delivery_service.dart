@@ -9,6 +9,7 @@ class DeliveryService with ChangeNotifier {
       const LatLng(21.0045, 105.8428); // Hanoi
   String _estimatedTime = "N/A";
   String _deliveryFee = "N/A";
+  LatLng? _customerLocation; // Store customer location
 
   // Cache for geocoding and distances
   final Map<String, LatLng> _geocodeCache = {};
@@ -16,6 +17,7 @@ class DeliveryService with ChangeNotifier {
 
   String get estimatedTime => _estimatedTime;
   String get deliveryFee => _deliveryFee;
+  LatLng? get customerLocation => _customerLocation; // Getter for CartPage
 
   // Haversine formula for distance (fallback)
   double calculateHaversineDistance(LatLng origin, LatLng destination) {
@@ -108,7 +110,7 @@ class DeliveryService with ChangeNotifier {
         if (lat < 8 || lat > 24 || lon < 102 || lon > 109) {
           throw Exception('Delivery only available within Vietnam');
         }
-        // Warn for ambiguous addresses (e.g., province only)
+        // Warn for ambiguous addresses
         if (addressDetails['city'] == null &&
             addressDetails['town'] == null &&
             addressDetails['village'] == null) {
@@ -128,12 +130,12 @@ class DeliveryService with ChangeNotifier {
     }
   }
 
-  // Calculate delivery fee and time (combined)
+  // Calculate delivery fee and time
   Future<Map<String, dynamic>> calculateDeliveryFeeAndTime(
       LatLng restaurant, LatLng customer) async {
     final distance = await getDistanceFromOSRM(restaurant, customer);
 
-    // Reject distances >150km
+    // Reject distances >500km
     if (distance > 500) {
       throw Exception('Delivery distance exceeds 500km');
     }
@@ -193,6 +195,7 @@ class DeliveryService with ChangeNotifier {
     print('DeliveryService - Updating delivery details for: $address');
     try {
       if (address.isNotEmpty) {
+        _customerLocation = customerLocation; // Store customer location
         final results = await calculateDeliveryFeeAndTime(
             defaultRestaurantLocation, customerLocation);
         final fee = results['fee'] as int;
@@ -202,17 +205,19 @@ class DeliveryService with ChangeNotifier {
         print(
             'DeliveryService - Updated: Time = $time, Fee = ${formatNumberWithDots(fee)} VND');
       } else {
+        _customerLocation = null;
         _estimatedTime = "N/A";
         _deliveryFee = "N/A";
         print('DeliveryService - Address empty, resetting to N/A');
       }
       notifyListeners();
     } catch (e) {
+      _customerLocation = null;
       _estimatedTime = "N/A";
       _deliveryFee = "N/A";
       print('DeliveryService - Error updating delivery details: $e');
       notifyListeners();
-      throw e; // Propagate error to UI
+      throw e;
     }
   }
 
@@ -222,11 +227,12 @@ class DeliveryService with ChangeNotifier {
       final customerLocation = await getCoordinatesFromAddress(address);
       await updateDeliveryDetailsWithLatLng(address, customerLocation);
     } catch (e) {
+      _customerLocation = null;
       _estimatedTime = "N/A";
       _deliveryFee = "N/A";
       print('DeliveryService - Error in updateDeliveryDetails: $e');
       notifyListeners();
-      throw e; // Propagate error to UI
+      throw e;
     }
   }
 }
