@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:foi/auth/database/firestore.dart';
 import 'package:foi/auth/services/auth_service.dart';
 import 'package:foi/auth/services/delivery_service.dart';
+import 'package:foi/auth/services/geocoding_service.dart';
 import 'package:foi/components/my_change_password_dialog.dart';
 import 'package:foi/components/my_profile_details.dart';
 import 'package:foi/components/profile_header.dart';
@@ -19,6 +21,12 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
+  // Khai báo các service sẽ được khởi tạo sau
+  late DeliveryService _deliveryService;
+  late Restaurant _restaurant;
+  late GeocodingService _geocodingService;
+  bool _servicesInitialized = false;
+
   Map<String, dynamic>? _userProfile;
   bool _isLoading = true;
   bool _isEditing = false;
@@ -33,6 +41,27 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     _fetchUserProfile();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Khởi tạo services ngay khi context có sẵn
+    if (!_servicesInitialized) {
+      try {
+        _deliveryService = Provider.of<DeliveryService>(context, listen: false);
+        _restaurant = Provider.of<Restaurant>(context, listen: false);
+        _geocodingService =
+            Provider.of<GeocodingService>(context, listen: false);
+        _servicesInitialized = true;
+      } catch (e) {
+        print('Error initializing services: $e');
+        setState(() {
+          _errorMessage = 'Failed to initialize services: $e';
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> _fetchUserProfile() async {
@@ -58,50 +87,71 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _saveProfile() async {
+    if (!_servicesInitialized) {
+      setState(() {
+        _errorMessage = 'Services not initialized. Please try again.';
+        _isSaving = false;
+      });
+      return;
+    }
+
     try {
       setState(() {
         _isSaving = true;
         _errorMessage = null;
       });
+
       final user = _authService.getCurrentUser();
       if (user != null) {
+        // Cập nhật thông tin cơ bản trước
         await _firestoreService.updateUserProfile(user.uid, {
           'name': _nameController.text,
           'phone': _phoneController.text,
           'address': _addressController.text,
         });
 
-        // Update delivery address, fee, and time
+        // Sau đó cập nhật thông tin giao hàng
         if (context.mounted) {
-          final deliveryService = context.read<DeliveryService>();
-          final restaurant = context.read<Restaurant>();
           final newAddress = _addressController.text.trim();
-          if (newAddress.isNotEmpty) {
-            // Geocode address
-            final customerLocation =
-                await deliveryService.getCoordinatesFromAddress(newAddress);
-            // Calculate fee and time
-            final results = await deliveryService.calculateDeliveryFeeAndTime(
-              deliveryService.defaultRestaurantLocation,
-              customerLocation,
-            );
-            final fee = (results['fee'] as int).toDouble();
-            final time = results['time'] as String;
-            // Update Restaurant
-            restaurant.setDeliveryFee(fee);
-            restaurant.setEstimatedTime(time);
-            restaurant.updateDeliveryAddress(newAddress);
-            // Update DeliveryService
-            await deliveryService.updateDeliveryDetailsWithLatLng(
-                newAddress, customerLocation);
-            print(
-                'ProfilePage - Updated address: $newAddress, fee: ${restaurant.formatPrice(fee)}, time: $time');
-          } else {
-            // Reset if address is empty
-            restaurant.setDeliveryFee(12000);
-            restaurant.setEstimatedTime("N/A");
-            restaurant.updateDeliveryAddress("");
-            await deliveryService.updateDeliveryDetails("");
+
+          try {
+            if (newAddress.isNotEmpty) {
+              // Sử dụng biến instance thay vì đọc từ context
+              // Geocode address
+              final customerLocation =
+                  await _geocodingService.getCoordinatesFromAddress(newAddress);
+
+              // Calculate fee and time
+              final results =
+                  await _deliveryService.calculateDeliveryFeeAndTime(
+                _deliveryService.defaultRestaurantLocation,
+                customerLocation,
+              );
+
+              final fee = (results['fee'] as int).toDouble();
+              final time = results['time'] as String;
+
+              // Update Restaurant
+              _restaurant.setDeliveryFee(fee);
+              _restaurant.setEstimatedTime(time);
+              _restaurant.updateDeliveryAddress(newAddress);
+
+              // Update DeliveryService
+              await _deliveryService.updateDeliveryDetailsWithLatLng(
+                  newAddress, customerLocation);
+
+              print(
+                  'ProfilePage - Updated address: $newAddress, fee: ${_restaurant.formatPrice(fee)}, time: $time');
+            } else {
+              // Reset if address is empty
+              _restaurant.setDeliveryFee(12000);
+              _restaurant.setEstimatedTime("N/A");
+              _restaurant.updateDeliveryAddress("");
+              await _deliveryService.updateDeliveryDetails("");
+            }
+          } catch (deliveryError) {
+            print('Error updating delivery details: $deliveryError');
+            // Thêm log lỗi nhưng không dừng việc lưu profile
           }
         }
 
@@ -113,10 +163,12 @@ class _ProfilePageState extends State<ProfilePage> {
           });
         }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('Error saving profile: $e');
+      print('Stack trace: $stackTrace');
       if (context.mounted) {
         setState(() {
-          _errorMessage = e.toString().replaceAll("Exception: ", "");
+          _errorMessage = 'Error: ${e.toString()}';
           _isSaving = false;
         });
       }

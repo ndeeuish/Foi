@@ -5,8 +5,7 @@ import 'package:flutter_credit_card/flutter_credit_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:foi/models/restaurant.dart';
 import 'package:provider/provider.dart';
-// import 'package:foi/models/cart_item.dart' hide CartItem; // Uncomment if cart_item.dart exists
-import 'package:foi/payment/vnpay/vnpay_service.dart'; // Import VNPayService
+import 'package:foi/payment/vnpay/vnpay_service.dart';
 
 class PaymentPage extends StatefulWidget {
   final double basePrice;
@@ -14,6 +13,7 @@ class PaymentPage extends StatefulWidget {
   final String? voucherCode;
   final double totalPrice;
   final String selectedPaymentMethod;
+  final double deliveryFee;
 
   const PaymentPage({
     super.key,
@@ -22,6 +22,7 @@ class PaymentPage extends StatefulWidget {
     this.voucherCode,
     required this.totalPrice,
     required this.selectedPaymentMethod,
+    required this.deliveryFee,
   });
 
   @override
@@ -36,13 +37,12 @@ class _PaymentPageState extends State<PaymentPage> {
   String cvvCode = '';
   bool isCvvFocused = false;
 
-  final _vnpayService = VNPayService(); // Tạo instance của VNPayService
+  final _vnpayService = VNPayService();
 
   void userTappedPay() async {
     print(
         'PaymentPage - userTappedPay() called. Payment method: ${widget.selectedPaymentMethod}');
 
-    // Kiểm tra địa chỉ giao hàng
     final restaurant = context.read<Restaurant>();
     if (restaurant.deliveryAddress.isEmpty ||
         restaurant.deliveryAddress == "Enter your address") {
@@ -54,14 +54,12 @@ class _PaymentPageState extends State<PaymentPage> {
       return;
     }
 
-    // Kiểm tra form hợp lệ nếu là thanh toán bằng thẻ
     if (widget.selectedPaymentMethod == "Card" &&
         !formKey.currentState!.validate()) {
       print('PaymentPage - Card payment - Form is invalid. Returning.');
       return;
     }
 
-    // Xử lý thanh toán VNPAY
     if (widget.selectedPaymentMethod == "VNPAY") {
       print(
           'PaymentPage - VNPAY selected. Calling VNPay service to get payment URL.');
@@ -101,7 +99,6 @@ class _PaymentPageState extends State<PaymentPage> {
       return;
     }
 
-    // Hiển thị hộp thoại xác nhận
     print(
         'PaymentPage - Payment method is ${widget.selectedPaymentMethod}. Showing confirmation dialog.');
     showDialog(
@@ -115,6 +112,8 @@ class _PaymentPageState extends State<PaymentPage> {
             children: [
               Text("Payment Method: ${widget.selectedPaymentMethod}"),
               Text("Cart Total: ${restaurant.formatPrice(widget.basePrice)}"),
+              Text(
+                  "Delivery Fee: ${restaurant.formatPrice(widget.deliveryFee * 1000)}"),
               if (widget.discountAmount > 0) ...[
                 Text("Voucher: ${widget.voucherCode ?? ''}"),
                 Text(
@@ -176,55 +175,6 @@ class _PaymentPageState extends State<PaymentPage> {
       ),
       body: Column(
         children: [
-          // Price breakdown
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text("Cart Total:", style: TextStyle(fontSize: 16)),
-                    Text(
-                      restaurant.formatPrice(widget.basePrice),
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ],
-                ),
-                if (widget.discountAmount > 0)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Discount (${widget.voucherCode ?? ''}):",
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      Text(
-                        "-${restaurant.formatPrice(widget.discountAmount)}",
-                        style:
-                            const TextStyle(fontSize: 16, color: Colors.green),
-                      ),
-                    ],
-                  ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Final Total:",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      restaurant.formatPrice(widget.totalPrice),
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
           if (widget.selectedPaymentMethod == "Card")
             Column(
               children: [
@@ -265,7 +215,68 @@ class _PaymentPageState extends State<PaymentPage> {
                 ],
               ),
             ),
-          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text("Cart Total:", style: TextStyle(fontSize: 16)),
+                    Text(
+                      restaurant.formatPrice(widget.basePrice),
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text("Delivery Fee:", style: TextStyle(fontSize: 16)),
+                    Text(
+                      restaurant.formatPrice(widget.deliveryFee * 1000),
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+                if (widget.discountAmount > 0) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Discount (${widget.voucherCode ?? ''}):",
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      Text(
+                        "-${restaurant.formatPrice(widget.discountAmount)}",
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.green),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Final Total:",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      restaurant.formatPrice(widget.totalPrice),
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
           MyButton(
             text: widget.selectedPaymentMethod == "Cash"
                 ? "Confirm Order"

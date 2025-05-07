@@ -9,20 +9,19 @@ class MyCurrentLocation extends StatelessWidget {
 
   final TextEditingController textController = TextEditingController();
 
-  // Show dialog to enter delivery address
-  void openLocationSearchBox(BuildContext context) {
+  Future<void> openLocationSearchBox(BuildContext context) async {
     bool isLoading = false;
-    showDialog(
+    await showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text("Your location"),
+          title: const Text("Delivery Address"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: textController,
-                decoration: const InputDecoration(hintText: "Enter address.."),
+                decoration: const InputDecoration(hintText: "Enter address..."),
                 style: const TextStyle(fontFamily: 'Roboto'),
               ),
               if (isLoading)
@@ -40,7 +39,6 @@ class MyCurrentLocation extends StatelessWidget {
             MaterialButton(
               onPressed: () async {
                 String newAddress = textController.text.trim();
-                // Validate address
                 if (newAddress.isEmpty || newAddress == "Enter your address") {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -53,26 +51,16 @@ class MyCurrentLocation extends StatelessWidget {
                   print('MyCurrentLocation - Showing loading');
                 }
                 try {
-                  // Geocode address to LatLng
                   final deliveryService = context.read<DeliveryService>();
                   final restaurant = context.read<Restaurant>();
-                  final customerLocation = await deliveryService
-                      .getCoordinatesFromAddress(newAddress);
-                  // Calculate fee and time
-                  final results =
-                      await deliveryService.calculateDeliveryFeeAndTime(
-                    deliveryService.defaultRestaurantLocation,
-                    customerLocation,
-                  );
-                  final fee = (results['fee'] as int).toDouble();
-                  final time = results['time'] as String;
-                  // Update Restaurant
+                  await deliveryService.updateDeliveryDetails(newAddress);
+                  final fee = double.parse(deliveryService.deliveryFee
+                          .replaceAll(RegExp(r'[^\d]'), '')) /
+                      1000;
+                  final time = deliveryService.estimatedTime;
                   restaurant.setDeliveryFee(fee);
                   restaurant.setEstimatedTime(time);
                   restaurant.updateDeliveryAddress(newAddress);
-                  // Update DeliveryService
-                  await deliveryService.updateDeliveryDetailsWithLatLng(
-                      newAddress, customerLocation);
                   print(
                       'MyCurrentLocation - Updated address: $newAddress, fee: ${restaurant.formatPrice(fee)}, time: $time');
                   if (context.mounted) {
@@ -109,7 +97,7 @@ class MyCurrentLocation extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Deliver now",
+            "Deliver Now",
             style: TextStyle(color: Theme.of(context).colorScheme.primary),
           ),
           GestureDetector(

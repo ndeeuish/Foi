@@ -324,10 +324,10 @@ class Restaurant extends ChangeNotifier {
   String _paymentStatus = "Pending";
 
   // Delivery fee (kept for future use)
-  double _deliveryFee = 10000;
+  double _deliveryFee = 0;
 
   // Estimated delivery time (kept for future use)
-  String _estimatedTime = "N/A";
+  String _estimatedTime = "0";
 
   // Voucher code and discount amount
   String? _voucherCode;
@@ -402,7 +402,7 @@ class Restaurant extends ChangeNotifier {
   // Calculate total price (base - discount)
   double getTotalPrice() {
     double basePrice = getBasePrice();
-    double total = basePrice - _discountAmount;
+    double total = basePrice - _discountAmount + deliveryFee * 1000;
     return total < 0 ? 0 : total;
   }
 

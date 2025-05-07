@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:foi/components/my_button.dart';
 import 'package:foi/components/my_cart_tile.dart';
@@ -6,7 +7,6 @@ import 'package:foi/models/restaurant.dart';
 import 'package:foi/auth/services/voucher_service.dart';
 import 'package:foi/auth/services/delivery_service.dart';
 import 'package:foi/pages/payment_page.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
 class CartPage extends StatefulWidget {
@@ -20,70 +20,16 @@ class _CartPageState extends State<CartPage> {
   final TextEditingController _voucherController = TextEditingController();
   String? _voucherError;
   final DeliveryService _deliveryService = DeliveryService();
-  double _distance = 0.0;
-  String? _lastAddress; // Track last address to detect changes
-  LatLng? _lastCustomerLocation; // Track last customer location
   String _selectedPaymentMethod = "Cash";
+  final _addressStreamController = StreamController<String>.broadcast();
 
   @override
   void initState() {
     super.initState();
-    _updateDistance();
-  }
-
-  void _updateDistance({String? newAddress}) async {
-    final restaurant = Provider.of<Restaurant>(context, listen: false);
-    final address = newAddress ?? restaurant.deliveryAddress;
-    print('CartPage - Updating distance for address: $address');
-    if (address.trim().isEmpty) {
-      setState(() {
-        _distance = 0.0;
-        _lastAddress = address;
-        _lastCustomerLocation = null;
-      });
-      print('CartPage - Empty address, distance set to 0.0');
-      return;
-    }
-    LatLng? customerLocation = _deliveryService.customerLocation;
-    if (customerLocation == null) {
-      // Fallback: Try geocoding the address directly
-      try {
-        print(
-            'CartPage - Customer location null, attempting to geocode: $address');
-        customerLocation =
-            await _deliveryService.getCoordinatesFromAddress(address);
-        await _deliveryService
-            .updateDeliveryDetails(address); // Ensure customerLocation is set
-      } catch (e) {
-        print('CartPage - Geocoding fallback failed: $e');
-        setState(() {
-          _distance = 0.0;
-          _lastAddress = address;
-          _lastCustomerLocation = null;
-        });
-        return;
-      }
-    }
-    try {
-      final distance = await _deliveryService.getDistanceFromOSRM(
-        _deliveryService.defaultRestaurantLocation,
-        customerLocation,
-      );
-      setState(() {
-        _distance = distance;
-        _lastAddress = address;
-        _lastCustomerLocation = customerLocation;
-      });
-      print(
-          'CartPage - Updated distance: ${_distance.toStringAsFixed(2)} km for address: $address, location: $customerLocation');
-    } catch (e) {
-      print('CartPage - Error updating distance: $e');
-      setState(() {
-        _distance = 0.0;
-        _lastAddress = address;
-        _lastCustomerLocation = customerLocation;
-      });
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final restaurant = Provider.of<Restaurant>(context, listen: false);
+      _addressStreamController.add(restaurant.deliveryAddress);
+    });
   }
 
   void _removeFromCart(Restaurant restaurant, CartItem cartItem) {
@@ -127,22 +73,18 @@ class _CartPageState extends State<CartPage> {
       providers: [
         ChangeNotifierProvider.value(value: _deliveryService),
       ],
-      child: Consumer2<Restaurant, DeliveryService>(
-        builder: (context, restaurant, deliveryService, child) {
+      child: Consumer<Restaurant>(
+        builder: (context, restaurant, child) {
           final userCart = restaurant.cart;
           final basePrice = restaurant.getBasePrice();
-          final discountAmount = restaurant.discountAmount ?? 0.0;
-          final voucherCode = restaurant.voucherCode ?? 'No voucher';
+          final discountAmount = restaurant.discountAmount;
+          final voucherCode = restaurant.voucherCode ?? 'None';
           final totalPrice = restaurant.getTotalPrice();
-          // Check for address or location change
-          if (restaurant.deliveryAddress != _lastAddress ||
-              deliveryService.customerLocation != _lastCustomerLocation) {
-            print(
-                'CartPage - Detected change: address=${restaurant.deliveryAddress}, location=${deliveryService.customerLocation}');
-            _updateDistance(newAddress: restaurant.deliveryAddress);
-          }
+          final deliveryFee = restaurant.deliveryFee == 0
+              ? 'N/A'
+              : restaurant.formatPrice(restaurant.deliveryFee * 1000);
           print(
-              'CartPage - basePrice=$basePrice, discountAmount=$discountAmount, voucherCode=$voucherCode, totalPrice=$totalPrice');
+              'CartPage - basePrice=$basePrice, discountAmount=$discountAmount, voucherCode=$voucherCode, totalPrice=$totalPrice, deliveryFee=$deliveryFee');
           return Scaffold(
             appBar: AppBar(
               title: const Text('Cart'),
@@ -186,14 +128,6 @@ class _CartPageState extends State<CartPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Delivery Distance
-                  Text(
-                    'Delivery Distance: ${_distance.toStringAsFixed(2)} km',
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 16),
-                  // Test Button for Debugging
-                  // Order Summary
                   const Text(
                     'Order Summary',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -201,7 +135,7 @@ class _CartPageState extends State<CartPage> {
                   const SizedBox(height: 10),
                   userCart.isEmpty
                       ? const Center(child: Text('Cart is empty'))
-                      : ListView.builder(
+                      : ListView.separated(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: userCart.length,
@@ -223,42 +157,105 @@ class _CartPageState extends State<CartPage> {
                               child: MyCartTile(cartItem: cartItem),
                             );
                           },
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 8),
                         ),
                   const SizedBox(height: 16),
-                  // Delivery Address
-
-                  GestureDetector(
-                    onTap: () {
-                      MyCurrentLocation().openLocationSearchBox(context);
-                      // _updateDistance called via Consumer on address change
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
+                  const Text(
+                    'Delivery Address',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  StreamBuilder<String>(
+                    stream: _addressStreamController.stream,
+                    builder: (context, snapshot) {
+                      final address =
+                          snapshot.data ?? restaurant.deliveryAddress;
+                      print(
+                          'CartPage - StreamBuilder triggered for address: $address');
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Text(
-                              restaurant.deliveryAddress.isEmpty
-                                  ? 'Select Address'
-                                  : restaurant.deliveryAddress,
-                              style: TextStyle(
-                                color: restaurant.deliveryAddress.isEmpty
-                                    ? Colors.grey
-                                    : Colors.black,
+                          GestureDetector(
+                            onTap: () async {
+                              await MyCurrentLocation()
+                                  .openLocationSearchBox(context);
+                              final restaurant = Provider.of<Restaurant>(
+                                  context,
+                                  listen: false);
+                              _addressStreamController
+                                  .add(restaurant.deliveryAddress);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      restaurant.deliveryAddress.isEmpty
+                                          ? 'Select Address'
+                                          : restaurant.deliveryAddress,
+                                      style: TextStyle(
+                                        color:
+                                            restaurant.deliveryAddress.isEmpty
+                                                ? Colors.grey
+                                                : Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                  const Icon(Icons.edit),
+                                ],
                               ),
                             ),
                           ),
-                          const Icon(Icons.edit),
+                          const SizedBox(height: 8),
+                          FutureBuilder<double>(
+                            future: _deliveryService.fetchDistance(address),
+                            builder: (context, distanceSnapshot) {
+                              if (distanceSnapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Text(
+                                  'Delivery Distance: Loading...',
+                                  style: TextStyle(
+                                      fontSize: 14, color: Colors.grey),
+                                );
+                              }
+                              if (distanceSnapshot.hasError) {
+                                print(
+                                    'CartPage - Distance fetch error: ${distanceSnapshot.error}');
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      distanceSnapshot.error.toString().contains(
+                                              'Delivery only available within Vietnam')
+                                          ? 'Delivery only available within Vietnam. Please enter a valid address.'
+                                          : 'Unable to calculate distance. Please check your address or network connection.',
+                                    ),
+                                  ),
+                                );
+                                return const Text(
+                                  'Delivery Distance: 0.00 km',
+                                  style: TextStyle(
+                                      fontSize: 14, color: Colors.grey),
+                                );
+                              }
+                              final distance = distanceSnapshot.data ?? 0.0;
+                              return Text(
+                                'Delivery Distance: ${distance.toStringAsFixed(2)} km',
+                                style: const TextStyle(
+                                    fontSize: 14, color: Colors.grey),
+                              );
+                            },
+                          ),
                         ],
-                      ),
-                    ),
+                      );
+                    },
                   ),
-
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
                   const Text(
                     'Select Payment Method:',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -279,7 +276,6 @@ class _CartPageState extends State<CartPage> {
                     }).toList(),
                   ),
                   const SizedBox(height: 16),
-                  // Promo Code
                   const Text(
                     'Promo Code',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -291,7 +287,7 @@ class _CartPageState extends State<CartPage> {
                         child: TextField(
                           controller: _voucherController,
                           decoration: InputDecoration(
-                            hintText: 'Enter voucher code',
+                            hintText: 'Enter promo code',
                             errorText: _voucherError,
                             border: const OutlineInputBorder(),
                           ),
@@ -312,7 +308,6 @@ class _CartPageState extends State<CartPage> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Price Breakdown
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -325,6 +320,20 @@ class _CartPageState extends State<CartPage> {
                           ),
                           Text(
                             restaurant.formatPrice(basePrice),
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Delivery Fee:',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          Text(
+                            deliveryFee,
                             style: const TextStyle(fontSize: 16),
                           ),
                         ],
@@ -366,35 +375,38 @@ class _CartPageState extends State<CartPage> {
                           ),
                           Text(
                             restaurant.formatPrice(totalPrice),
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
-                      // Checkout Button
                       Align(
                         alignment: Alignment.center,
                         child: MyButton(
-                          text: 'Go to Checkout',
+                          text: 'Checkout',
                           onTap: userCart.isEmpty ||
                                   restaurant.deliveryAddress.isEmpty ||
                                   _selectedPaymentMethod == 'Not selected'
                               ? null
-                              : () => Navigator.push(
+                              : () {
+                                  print(
+                                      'CartPage - Navigating to PaymentPage with method: $_selectedPaymentMethod');
+                                  Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => PaymentPage(
                                         selectedPaymentMethod:
                                             _selectedPaymentMethod,
                                         basePrice: basePrice,
-                                        discountAmount:
-                                            restaurant.discountAmount,
+                                        discountAmount: discountAmount,
                                         voucherCode: restaurant.voucherCode,
+                                        deliveryFee: restaurant.deliveryFee,
                                         totalPrice: totalPrice,
                                       ),
                                     ),
-                                  ),
+                                  );
+                                },
                         ),
                       ),
                     ],
@@ -411,6 +423,7 @@ class _CartPageState extends State<CartPage> {
   @override
   void dispose() {
     _voucherController.dispose();
+    _addressStreamController.close();
     super.dispose();
   }
 }
