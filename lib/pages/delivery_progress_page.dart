@@ -30,6 +30,12 @@ class _DeliveryProgressPageState extends State<DeliveryProgressPage> {
         appBar: AppBar(
           title: Text("Delivery in progress"),
           backgroundColor: Colors.transparent,
+          leading: IconButton(
+            icon: Icon(Icons.close),
+            onPressed: () {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+          ),
         ),
         bottomNavigationBar: _buildBottomNavBar(context),
         body: Column(

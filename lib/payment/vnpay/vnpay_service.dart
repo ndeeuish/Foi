@@ -2,18 +2,31 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class VNPayService {
-  Future<String?> getPaymentUrl(double amount) async {
-    final url = Uri.parse('https://createvnpaypayment-fi5yhlbyqq-uc.a.run.app');
-    final response = await http.post(
-      url,
-      body: {'amount': amount.toString()},
-    );
+  static const String _functionUrl = 'https://createvnpaypayment-fi5yhlbyqq-uc.a.run.app';
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['paymentUrl'];
-    } else {
-      print('Failed to get payment URL: ${response.statusCode}');
+  Future<String?> getPaymentUrl(double amount) async {
+    try {
+      final url = Uri.parse(_functionUrl);
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'amount': amount,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['paymentUrl'];
+      } else {
+        print('Failed to get payment URL: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error getting payment URL: $e');
       return null;
     }
   }

@@ -1,46 +1,89 @@
 const functions = require("firebase-functions");
-//const request = require("request");
 const moment = require("moment");
 const crypto = require("crypto");
+const querystring = require("qs");
+
+// Helper function to sort object keys
+function sortObject(obj) {
+    const sorted = {};
+    Object.keys(obj).sort().forEach(key => {
+        sorted[key] = obj[key];
+    });
+    return sorted;
+}
 
 exports.createVNPayPayment = functions.https.onRequest((req, res) => {
-    const ipAddr = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+    // Enable CORS
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'POST');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
 
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+    }
+
+    // Validate request method
+    if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Method not allowed' });
+        return;
+    }
+
+    // Validate amount
+    const amount = parseFloat(req.body.amount);
+    if (!amount || amount <= 0) {
+        res.status(400).json({ error: 'Invalid amount' });
+        return;
+    }
+
+    const ipAddr = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
     const tmnCode = "NO2W1JM9"; 
     const secretKey = "5W7EUSKQRVFMWJHCDRWUAMM2WMN7AVVC"; 
     const vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
     const returnUrl = "https://vnpayreturn-fi5yhlbyqq-uc.a.run.app";
-    const orderId = moment().format("YYYYMMDDHHmmss");
-    const amount = req.body.amount; // Lấy số tiền từ request
+    const orderId = moment().format("HHmmss");
     const orderInfo = "Thanh toan don hang " + orderId;
     const createDate = moment().format("YYYYMMDDHHmmss");
 
-    const vnpParams = {};
-    vnpParams["vnp_Version"] = "2.1.0";
-    vnpParams["vnp_Command"] = "pay";
-    vnpParams["vnp_TmnCode"] = tmnCode;
-    vnpParams["vnp_Amount"] = amount * 100;
-    vnpParams["vnp_CurrCode"] = "VND";
-    vnpParams["vnp_TxnRef"] = orderId;
-    vnpParams["vnp_OrderInfo"] = orderInfo;
-    vnpParams["vnp_ReturnUrl"] = returnUrl;
-    vnpParams["vnp_IpAddr"] = ipAddr;
-    vnpParams["vnp_CreateDate"] = createDate;
+    // Create params
+    const vnpParams = {
+        vnp_Amount: Math.round(amount * 100),
+        vnp_Command: "pay",
+        vnp_CreateDate: createDate,
+        vnp_CurrCode: "VND",
+        vnp_IpAddr: ipAddr,
+        vnp_Locale: "vn",
+        vnp_OrderInfo: orderInfo,
+        vnp_OrderType: "other",
+        vnp_ReturnUrl: returnUrl,
+        vnp_TmnCode: tmnCode,
+        vnp_TxnRef: orderId,
+        vnp_Version: "2.1.0"
+    };
 
-    const sortedVnpParams = Object.keys(vnpParams)
-        .sort()
-        .reduce((obj, key) => {
-            obj[key] = vnpParams[key];
-            return obj;
-        }, {});
+    // Sort params
+    const sortedVnpParams = sortObject(vnpParams);
 
-    const querystring = require("qs");
-    const signData = querystring.stringify(sortedVnpParams, { encode: false });
+    // Create signature string (without encoding)
+    const signData = querystring.stringify(sortedVnpParams, { 
+        encode: false 
+    });
+    console.log('SignData:', signData);
+
+    // Create signature
     const hmac = crypto.createHmac("sha512", secretKey);
-    const signed = hmac.update(new Buffer(signData, "utf-8")).digest("hex");
-    vnpParams["vnp_SecureHash"] = signed;
-    const paymentUrl =
-        vnpUrl + "?" + querystring.stringify(vnpParams, { encode: false });
+    const signed = hmac.update(new Buffer(signData, 'utf-8')).digest("hex");
+    console.log('Signed:', signed);
+    
+    // Add signature to params
+    sortedVnpParams.vnp_SecureHash = signed;
 
-    res.json({ paymentUrl: paymentUrl });
+    // Create payment URL
+    const paymentUrl = vnpUrl + "?" + querystring.stringify(sortedVnpParams, {
+        encode: true
+    });
+    console.log('Payment URL:', paymentUrl);
+
+    res.json({ paymentUrl });
 });
