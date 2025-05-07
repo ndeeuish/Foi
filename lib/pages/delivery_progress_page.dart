@@ -5,7 +5,14 @@ import 'package:foi/pages/my_receipt.dart';
 import 'package:provider/provider.dart';
 
 class DeliveryProgressPage extends StatefulWidget {
-  const DeliveryProgressPage({super.key});
+  final String receipt;
+  final String paymentStatus;
+
+  const DeliveryProgressPage({
+    super.key,
+    required this.receipt,
+    required this.paymentStatus,
+  });
 
   @override
   State<DeliveryProgressPage> createState() => _DeliveryProgressPageState();
@@ -18,115 +25,125 @@ class _DeliveryProgressPageState extends State<DeliveryProgressPage> {
   @override
   void initState() {
     super.initState();
-    String receipt = context.read<Restaurant>().displayCartReceipt();
-    String paymentStatus = context.read<Restaurant>().paymentStatus;
-    print('DeliveryProgressPage - Payment Status: $paymentStatus');
-    db.saveOrderToDatabase(receipt, paymentStatus);
+    _saveOrder();
+  }
+
+  Future<void> _saveOrder() async {
+    try {
+      final restaurant = context.read<Restaurant>();
+      print('DeliveryProgressPage - Payment Status: ${widget.paymentStatus}');
+      print('DeliveryProgressPage - Receipt: ${widget.receipt}');
+      
+      // Lưu order vào database với receipt đã được truyền vào
+      await db.saveOrderToDatabase(widget.receipt, widget.paymentStatus);
+      
+      // Clear cart sau khi đã lưu order
+      restaurant.clearCart();
+    } catch (e) {
+      print('DeliveryProgressPage - Error saving order: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text("Delivery in progress"),
-          backgroundColor: Colors.transparent,
-          leading: IconButton(
-            icon: Icon(Icons.close),
-            onPressed: () {
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            },
-          ),
+      appBar: AppBar(
+        title: const Text("Delivery in progress"),
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          },
         ),
-        bottomNavigationBar: _buildBottomNavBar(context),
-        body: Column(
-          children: [
-            MyReceipt(),
-          ],
-        ));
+      ),
+      bottomNavigationBar: _buildBottomNavBar(context),
+      body: Column(
+        children: [
+          MyReceipt(
+            receipt: widget.receipt,
+            paymentStatus: widget.paymentStatus,
+          ),
+        ],
+      ),
+    );
   }
 
-  //Custom Bottom Nav bar - Message/ Call delivery driver
   Widget _buildBottomNavBar(BuildContext context) {
     return Container(
-        height: 100,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.secondary,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(40),
-            topRight: Radius.circular(40),
-          ),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
         ),
-        padding: EdgeInsets.all(25),
-        child: Row(
-          children: [
-            //profile pic of driver
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.person),
-              ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Driver profile picture
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Theme.of(context).colorScheme.primary,
             ),
-
-            SizedBox(
-              width: 10,
+            child: const Icon(
+              Icons.person,
+              color: Colors.white,
+              size: 30,
             ),
-
-            //driver Details
-            Column(
+          ),
+          const SizedBox(width: 15),
+          // Driver details
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  "Shipper",
+                const Text(
+                  "Your driver",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
-                    color: Theme.of(context).colorScheme.inversePrimary,
                   ),
                 ),
                 Text(
-                  "Driver",
+                  "Arriving in 10-15 minutes",
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: Theme.of(context).colorScheme.inversePrimary,
                   ),
-                )
+                ),
               ],
             ),
-
-            Spacer(),
-            //message button
-            Row(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.message),
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-
-                //call button
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.call),
-                    color: Colors.green,
-                  ),
-                ),
-              ],
-            )
-          ],
-        ));
+          ),
+          // Contact buttons
+          Row(
+            children: [
+              IconButton(
+                onPressed: () {
+                  // TODO: Implement call functionality
+                },
+                icon: const Icon(Icons.phone),
+              ),
+              IconButton(
+                onPressed: () {
+                  // TODO: Implement message functionality
+                },
+                icon: const Icon(Icons.message),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

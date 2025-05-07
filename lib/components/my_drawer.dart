@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:foi/auth/services/auth_service.dart';
 import 'package:foi/auth/services/login_or_register.dart';
 import 'package:foi/components/my_drawer_tile.dart';
+import 'package:foi/pages/order_history_page.dart';
 import 'package:foi/pages/profile_page.dart';
 import 'package:foi/pages/settings_page.dart';
 
@@ -84,6 +85,18 @@ class MyDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const ProfilePage()),
+              );
+            },
+          ),
+
+          // Order History
+          MyDrawerTile(
+            text: "O R D E R H I S T O R Y",
+            icon: Icons.history,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const OrderHistoryPage()),
               );
             },
           ),

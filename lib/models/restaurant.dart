@@ -1,318 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:foi/models/food.dart';
+import 'package:foi/services/firebase_service.dart';
+import 'package:foi/auth/services/auth_service.dart';
+import 'package:foi/auth/database/firestore.dart';
 import 'package:intl/intl.dart';
 
 class Restaurant extends ChangeNotifier {
-  // List of food menu items
-  final List<Food> _menu = [
-    Food(
-      name: "Classic Cheeseburger",
-      description: "A beef patty with cheddar, lettuce, tomato and onion",
-      imagePath: "lib/images/burgers/classic.png",
-      price: 35000,
-      category: FoodCategory.burgers,
-      availableAddons: [
-        Addon(name: "Extra cheese", price: 5000),
-        Addon(name: "Bacon", price: 10000),
-        Addon(name: "Pickle", price: 5000),
-      ],
-    ),
-    Food(
-      name: "Chicken Burger",
-      description: "A crispy chicken patty with lettuce, mayo, and tomato",
-      imagePath: "lib/images/burgers/chicken.png",
-      price: 40000,
-      category: FoodCategory.burgers,
-      availableAddons: [
-        Addon(name: "Extra cheese", price: 5000),
-        Addon(name: "Bacon", price: 10000),
-        Addon(name: "Pickle", price: 5000),
-      ],
-    ),
-    Food(
-      name: "BBQ Burger",
-      description:
-          "Smokey BBQ sauce, crispy bacon with lettuce, tomato, and onion",
-      imagePath: "lib/images/burgers/beef.png",
-      price: 45000,
-      category: FoodCategory.burgers,
-      availableAddons: [
-        Addon(name: "Extra cheese", price: 5000),
-        Addon(name: "Bacon", price: 10000),
-        Addon(name: "Pickle", price: 5000),
-      ],
-    ),
-    Food(
-      name: "Shrimp Burger",
-      description: "A crispy shrimp patty with tartar sauce and lettuce",
-      imagePath: "lib/images/burgers/shrimp.png",
-      price: 50000,
-      category: FoodCategory.burgers,
-      availableAddons: [
-        Addon(name: "Extra cheese", price: 5000),
-        Addon(name: "Bacon", price: 10000),
-        Addon(name: "Pickle", price: 5000),
-      ],
-    ),
-    Food(
-      name: "Double Burger",
-      description: "Two beef patties with cheddar, lettuce, tomato, and onion",
-      imagePath: "lib/images/burgers/double.png",
-      price: 60000,
-      category: FoodCategory.burgers,
-      availableAddons: [
-        Addon(name: "Extra cheese", price: 5000),
-        Addon(name: "Bacon", price: 10000),
-        Addon(name: "Pickle", price: 5000),
-      ],
-    ),
-    Food(
-      name: "Caesar Salad",
-      description:
-          "Fresh romaine lettuce with croutons, parmesan cheese, and Caesar dressing",
-      imagePath: "lib/images/salads/caesar.png",
-      price: 30000,
-      category: FoodCategory.salads,
-      availableAddons: [
-        Addon(name: "Grilled chicken", price: 10000),
-        Addon(name: "Extra parmesan", price: 5000),
-        Addon(name: "Bacon bits", price: 7000),
-      ],
-    ),
-    Food(
-      name: "Chicken Salad",
-      description:
-          "Grilled chicken breast on a bed of mixed greens with cherry tomatoes and vinaigrette",
-      imagePath: "lib/images/salads/chicken.png",
-      price: 35000,
-      category: FoodCategory.salads,
-      availableAddons: [
-        Addon(name: "Extra chicken", price: 10000),
-        Addon(name: "Avocado", price: 7000),
-        Addon(name: "Feta cheese", price: 5000),
-      ],
-    ),
-    Food(
-      name: "Mushroom Salad",
-      description:
-          "Sautéed mushrooms with spinach, arugula, and balsamic dressing",
-      imagePath: "lib/images/salads/mushroom.png",
-      price: 32000,
-      category: FoodCategory.salads,
-      availableAddons: [
-        Addon(name: "Grilled tofu", price: 7000),
-        Addon(name: "Walnuts", price: 5000),
-        Addon(name: "Goat cheese", price: 6000),
-      ],
-    ),
-    Food(
-      name: "Spinach Salad",
-      description:
-          "Fresh baby spinach with sliced strawberries, almonds, and honey mustard dressing",
-      imagePath: "lib/images/salads/spinach.png",
-      price: 35000,
-      category: FoodCategory.salads,
-      availableAddons: [
-        Addon(name: "Blue cheese", price: 6000),
-        Addon(name: "Cranberries", price: 5000),
-        Addon(name: "Grilled chicken", price: 10000),
-      ],
-    ),
-    Food(
-      name: "Shrimp Salad",
-      description:
-          "Grilled shrimp with mixed greens, avocado, and citrus vinaigrette",
-      imagePath: "lib/images/salads/shrimp.png",
-      price: 40000,
-      category: FoodCategory.salads,
-      availableAddons: [
-        Addon(name: "Extra shrimp", price: 12000),
-        Addon(name: "Mango slices", price: 6000),
-        Addon(name: "Cashews", price: 5000),
-      ],
-    ),
-    Food(
-      name: "French Fries",
-      description: "Crispy golden fries with a side of ketchup",
-      imagePath: "lib/images/sides/fries.png",
-      price: 30000,
-      category: FoodCategory.sides,
-      availableAddons: [
-        Addon(name: "Cheese sauce", price: 5000),
-        Addon(name: "Bacon bits", price: 7000),
-        Addon(name: "Garlic butter", price: 4000),
-      ],
-    ),
-    Food(
-      name: "Mac and Cheese",
-      description: "Creamy macaroni with melted cheddar cheese",
-      imagePath: "lib/images/sides/mac_cheese.png",
-      price: 20000,
-      category: FoodCategory.sides,
-      availableAddons: [
-        Addon(name: "Extra cheese", price: 5000),
-        Addon(name: "Truffle oil", price: 8000),
-        Addon(name: "Bacon bits", price: 7000),
-      ],
-    ),
-    Food(
-      name: "Onion Rings",
-      description:
-          "Crispy battered onion rings served with a tangy dipping sauce",
-      imagePath: "lib/images/sides/onion_rings.png",
-      price: 18000,
-      category: FoodCategory.sides,
-      availableAddons: [
-        Addon(name: "Spicy mayo", price: 4000),
-        Addon(name: "BBQ sauce", price: 4000),
-        Addon(name: "Extra crispy", price: 3000),
-      ],
-    ),
-    Food(
-      name: "Egg",
-      description: "Perfectly cooked egg, available fried or boiled",
-      imagePath: "lib/images/sides/egg.png",
-      price: 8000,
-      category: FoodCategory.sides,
-      availableAddons: [
-        Addon(name: "Double egg", price: 5000),
-        Addon(name: "Soy sauce", price: 2000),
-        Addon(name: "Chili flakes", price: 2000),
-      ],
-    ),
-    Food(
-      name: "Chips",
-      description: "Crunchy potato chips with a variety of flavors",
-      imagePath: "lib/images/sides/chips.png",
-      price: 12000,
-      category: FoodCategory.sides,
-      availableAddons: [
-        Addon(name: "Cheddar seasoning", price: 4000),
-        Addon(name: "Spicy seasoning", price: 4000),
-        Addon(name: "Ranch dip", price: 5000),
-      ],
-    ),
-    Food(
-      name: "Beer",
-      description: "Chilled refreshing beer, perfect for any meal",
-      imagePath: "lib/images/drinks/beer.png",
-      price: 20000,
-      category: FoodCategory.drinks,
-      availableAddons: [
-        Addon(name: "Extra cold", price: 2000),
-        Addon(name: "Lemon slice", price: 2000),
-        Addon(name: "Salt rim", price: 3000),
-      ],
-    ),
-    Food(
-      name: "Fanta",
-      description: "Fizzy orange soda with a sweet and tangy taste",
-      imagePath: "lib/images/drinks/fanta.png",
-      price: 15000,
-      category: FoodCategory.drinks,
-      availableAddons: [
-        Addon(name: "Extra ice", price: 2000),
-        Addon(name: "Lemon slice", price: 2000),
-        Addon(name: "Large size", price: 5000),
-      ],
-    ),
-    Food(
-      name: "Iced Tea",
-      description: "Refreshing iced tea with a hint of lemon",
-      imagePath: "lib/images/drinks/icetea.png",
-      price: 12000,
-      category: FoodCategory.drinks,
-      availableAddons: [
-        Addon(name: "Honey", price: 3000),
-        Addon(name: "Mint leaves", price: 2000),
-        Addon(name: "Extra lemon", price: 2000),
-      ],
-    ),
-    Food(
-      name: "Coke",
-      description: "Classic Coca-Cola with a bold and crisp taste",
-      imagePath: "lib/images/drinks/coke.png",
-      price: 15000,
-      category: FoodCategory.drinks,
-      availableAddons: [
-        Addon(name: "Extra ice", price: 2000),
-        Addon(name: "Lime wedge", price: 2000),
-        Addon(name: "Large size", price: 5000),
-      ],
-    ),
-    Food(
-      name: "Water",
-      description: "Pure and refreshing bottled water",
-      imagePath: "lib/images/drinks/water.png",
-      price: 10000,
-      category: FoodCategory.drinks,
-      availableAddons: [
-        Addon(name: "Chilled", price: 2000),
-        Addon(name: "Lemon slice", price: 2000),
-        Addon(name: "Sparkling upgrade", price: 5000),
-      ],
-    ),
-    Food(
-      name: "Brownie",
-      description: "Rich and fudgy chocolate brownie topped with walnuts",
-      imagePath: "lib/images/desserts/brownie.png",
-      price: 30000,
-      category: FoodCategory.desserts,
-      availableAddons: [
-        Addon(name: "Vanilla ice cream", price: 7000),
-        Addon(name: "Chocolate syrup", price: 4000),
-        Addon(name: "Extra walnuts", price: 3000),
-      ],
-    ),
-    Food(
-      name: "Cake",
-      description: "Soft and moist cake with layers of chocolate and nut",
-      imagePath: "lib/images/desserts/cake.png",
-      price: 25000,
-      category: FoodCategory.desserts,
-      availableAddons: [
-        Addon(name: "Extra cream", price: 4000),
-        Addon(name: "Berry topping", price: 7000),
-        Addon(name: "Chocolate shavings", price: 5000),
-      ],
-    ),
-    Food(
-      name: "Lemon Pie",
-      description: "Lemon pie with layers of cream",
-      imagePath: "lib/images/desserts/pie.png",
-      price: 18000,
-      category: FoodCategory.desserts,
-      availableAddons: [
-        Addon(name: "Chocolate chips", price: 4000),
-        Addon(name: "Caramel drizzle", price: 4000),
-        Addon(name: "Waffle cone", price: 3000),
-      ],
-    ),
-    Food(
-      name: "Mousse",
-      description: "Light and airy chocolate mousse with a rich texture",
-      imagePath: "lib/images/desserts/mousse.png",
-      price: 22000,
-      category: FoodCategory.desserts,
-      availableAddons: [
-        Addon(name: "Whipped cream", price: 4000),
-        Addon(name: "Cocoa powder", price: 3000),
-        Addon(name: "Raspberry sauce", price: 5000),
-      ],
-    ),
-    Food(
-      name: "Macaron",
-      description: "Delicate French macarons with a soft and chewy center",
-      imagePath: "lib/images/desserts/macaron.png",
-      price: 30000,
-      category: FoodCategory.desserts,
-      availableAddons: [
-        Addon(name: "Mixed flavors", price: 10000),
-        Addon(name: "Extra filling", price: 7000),
-        Addon(name: "Gold flakes", price: 12000),
-      ],
-    ),
-  ];
+  final FirebaseService _firebaseService = FirebaseService();
+  final AuthService _authService = AuthService();
+  final FirestoreService _firestoreService = FirestoreService();
+  List<Food> _menu = [];
+  bool _isLoading = false;
+  String? _error;
 
   // User cart
   final List<CartItem> _cart = [];
@@ -333,8 +32,37 @@ class Restaurant extends ChangeNotifier {
   String? _voucherCode;
   double _discountAmount = 0.0;
 
+  // Constructor
+  Restaurant() {
+    _initializeUserAddress();
+  }
+
+  // Initialize user address from profile
+  Future<void> _initializeUserAddress() async {
+    try {
+      final user = _authService.getCurrentUser();
+      if (user != null) {
+        final profile = await _firestoreService.getUserProfile(user.uid);
+        if (profile != null && profile['address'] != null && profile['address'].toString().isNotEmpty) {
+          _deliveryAddress = profile['address'];
+          print('Restaurant - Loaded user address from profile: $_deliveryAddress');
+        } else {
+          print('Restaurant - No address found in user profile');
+          _deliveryAddress = ""; // Reset to empty string if no address found
+        }
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Restaurant - Error initializing user address: $e');
+      _deliveryAddress = ""; // Reset to empty string on error
+      notifyListeners();
+    }
+  }
+
   // Getters
   List<Food> get menu => _menu;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
   List<CartItem> get cart => _cart;
   String get deliveryAddress => _deliveryAddress;
   String get paymentStatus => _paymentStatus;
@@ -342,6 +70,178 @@ class Restaurant extends ChangeNotifier {
   String get estimatedTime => _estimatedTime;
   String? get voucherCode => _voucherCode;
   double get discountAmount => _discountAmount;
+
+  // Initialize and load data
+  Future<void> loadMenu() async {
+    print('Restaurant - Starting to load menu');
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _menu = await _firebaseService.getFoodItems();
+      print('Restaurant - Successfully loaded ${_menu.length} food items');
+    } catch (e) {
+      _error = 'Failed to load menu: $e';
+      print('Restaurant - Error loading menu: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Get food items by category
+  List<Food> getFoodByCategory(FoodCategory category) {
+    return _menu.where((food) => food.category == category).toList();
+  }
+
+  // Get food items by name
+  List<Food> searchFood(String query) {
+    return _menu
+        .where((food) =>
+            food.name.toLowerCase().contains(query.toLowerCase()) ||
+            food.description.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+  }
+
+  // Add new food item
+  Future<void> addFoodItem(Food food) async {
+    try {
+      await _firebaseService.addFoodItem(food);
+      await loadMenu(); // Reload the menu after adding
+    } catch (e) {
+      _error = 'Failed to add food item: $e';
+      notifyListeners();
+    }
+  }
+
+  // Update food item
+  Future<void> updateFoodItem(String id, Food food) async {
+    try {
+      await _firebaseService.updateFoodItem(id, food);
+      await loadMenu(); // Reload the menu after updating
+    } catch (e) {
+      _error = 'Failed to update food item: $e';
+      notifyListeners();
+    }
+  }
+
+  // Delete food item
+  Future<void> deleteFoodItem(String id) async {
+    try {
+      await _firebaseService.deleteFoodItem(id);
+      await loadMenu(); // Reload the menu after deleting
+    } catch (e) {
+      _error = 'Failed to delete food item: $e';
+      notifyListeners();
+    }
+  }
+
+  // Get food items by price range
+  List<Food> getFoodByPriceRange(double minPrice, double maxPrice) {
+    return _menu
+        .where((food) => food.price >= minPrice && food.price <= maxPrice)
+        .toList();
+  }
+
+  // Get food items by addon
+  List<Food> getFoodByAddon(String addonName) {
+    return _menu
+        .where((food) =>
+            food.availableAddons.any((addon) =>
+                addon.name.toLowerCase().contains(addonName.toLowerCase())))
+        .toList();
+  }
+
+  // Get food items by price
+  List<Food> getFoodByPrice(double price) {
+    return _menu.where((food) => food.price == price).toList();
+  }
+
+  // Get food items by name
+  List<Food> getFoodByName(String name) {
+    return _menu
+        .where((food) =>
+            food.name.toLowerCase().contains(name.toLowerCase()))
+        .toList();
+  }
+
+  // Get food items by description
+  List<Food> getFoodByDescription(String description) {
+    return _menu
+        .where((food) =>
+            food.description.toLowerCase().contains(description.toLowerCase()))
+        .toList();
+  }
+
+  // Get food items by image path
+  List<Food> getFoodByImagePath(String imagePath) {
+    return _menu
+        .where((food) =>
+            food.imagePath.toLowerCase().contains(imagePath.toLowerCase()))
+        .toList();
+  }
+
+  // Get food items by category and price range
+  List<Food> getFoodByCategoryAndPriceRange(
+      FoodCategory category, double minPrice, double maxPrice) {
+    return _menu
+        .where((food) =>
+            food.category == category &&
+            food.price >= minPrice &&
+            food.price <= maxPrice)
+        .toList();
+  }
+
+  // Get food items by category and addon
+  List<Food> getFoodByCategoryAndAddon(
+      FoodCategory category, String addonName) {
+    return _menu
+        .where((food) =>
+            food.category == category &&
+            food.availableAddons.any((addon) =>
+                addon.name.toLowerCase().contains(addonName.toLowerCase())))
+        .toList();
+  }
+
+  // Get food items by category and price
+  List<Food> getFoodByCategoryAndPrice(
+      FoodCategory category, double price) {
+    return _menu
+        .where((food) =>
+            food.category == category && food.price == price)
+        .toList();
+  }
+
+  // Get food items by category and name
+  List<Food> getFoodByCategoryAndName(
+      FoodCategory category, String name) {
+    return _menu
+        .where((food) =>
+            food.category == category &&
+            food.name.toLowerCase().contains(name.toLowerCase()))
+        .toList();
+  }
+
+  // Get food items by category and description
+  List<Food> getFoodByCategoryAndDescription(
+      FoodCategory category, String description) {
+    return _menu
+        .where((food) =>
+            food.category == category &&
+            food.description.toLowerCase().contains(description.toLowerCase()))
+        .toList();
+  }
+
+  // Get food items by category and image path
+  List<Food> getFoodByCategoryAndImagePath(
+      FoodCategory category, String imagePath) {
+    return _menu
+        .where((food) =>
+            food.category == category &&
+            food.imagePath.toLowerCase().contains(imagePath.toLowerCase()))
+        .toList();
+  }
 
   // Format price in VND
   String formatPrice(double price) {

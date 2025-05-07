@@ -136,17 +136,27 @@ class _PaymentPageState extends State<PaymentPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               print('PaymentPage - Confirmation dialog - Yes button pressed.');
               Navigator.pop(context);
+              
+              // Tạo receipt và cập nhật payment status
+              final receipt = restaurant.displayCartReceipt();
               restaurant.updatePaymentStatus("Paid");
-              print('PaymentPage - Payment status updated to: Paid');
+              
+              // Chuyển đến trang delivery progress với receipt và payment status
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const DeliveryProgressPage(),
+                  builder: (context) => DeliveryProgressPage(
+                    receipt: receipt,
+                    paymentStatus: "Paid",
+                  ),
                 ),
               );
+              
+              // Clear cart sau khi đã chuyển trang
+              restaurant.clearCart();
             },
             child: const Text("Yes"),
           ),

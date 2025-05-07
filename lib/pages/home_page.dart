@@ -25,14 +25,17 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
-    // Initialize TabController with the number of food categories
     _tabController =
         TabController(length: FoodCategory.values.length, vsync: this);
+    
+    // Load menu data when the page is initialized
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<Restaurant>(context, listen: false).loadMenu();
+    });
   }
 
   @override
   void dispose() {
-    // Dispose TabController to prevent memory leaks
     _tabController.dispose();
     super.dispose();
   }
@@ -62,6 +65,45 @@ class _HomePageState extends State<HomePage>
         },
       );
     }).toList();
+  }
+
+  // Show loading indicator
+  Widget _buildLoadingIndicator() {
+    return const Center(
+      child: CircularProgressIndicator(),
+    );
+  }
+
+  // Show error message
+  Widget _buildErrorMessage(String error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.error_outline,
+            color: Colors.red,
+            size: 60,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Error loading menu: $error',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.red,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              Provider.of<Restaurant>(context, listen: false).loadMenu();
+            },
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -97,11 +139,29 @@ class _HomePageState extends State<HomePage>
           ),
         ],
         body: Consumer<Restaurant>(
-          builder: (context, restaurant, child) => TabBarView(
-            controller: _tabController,
-            // Display food items for each category
-            children: getFoodInThisCategory(restaurant.menu),
-          ),
+          builder: (context, restaurant, child) {
+            if (restaurant.isLoading) {
+              return _buildLoadingIndicator();
+            }
+
+            if (restaurant.error != null) {
+              return _buildErrorMessage(restaurant.error!);
+            }
+
+            if (restaurant.menu.isEmpty) {
+              return const Center(
+                child: Text(
+                  'No food items available',
+                  style: TextStyle(fontSize: 16),
+                ),
+              );
+            }
+
+            return TabBarView(
+              controller: _tabController,
+              children: getFoodInThisCategory(restaurant.menu),
+            );
+          },
         ),
       ),
     );

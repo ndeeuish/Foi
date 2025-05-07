@@ -4,7 +4,14 @@ import 'package:provider/provider.dart';
 // import 'package:foi/models/cart_item.dart' hide CartItem; // Uncomment if needed
 
 class MyReceipt extends StatelessWidget {
-  const MyReceipt({super.key});
+  final String receipt;
+  final String paymentStatus;
+
+  const MyReceipt({
+    super.key,
+    required this.receipt,
+    required this.paymentStatus,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -12,9 +19,15 @@ class MyReceipt extends StatelessWidget {
       padding: const EdgeInsets.all(25.0),
       child: Consumer<Restaurant>(
         builder: (context, restaurant, child) {
-          final receipt = restaurant.displayCartReceipt();
-          print(
-              'MyReceipt - Displaying receipt with Total: ${restaurant.formatPrice(restaurant.getTotalPrice())}');
+          final totalItems = restaurant.getTotalItemCount();
+          final totalPrice = restaurant.getTotalPrice();
+          final deliveryAddress = restaurant.deliveryAddress;
+
+          print('MyReceipt - Displaying receipt:');
+          print('Total Items: $totalItems');
+          print('Total Price: ${restaurant.formatPrice(totalPrice)}');
+          print('Delivery Address: $deliveryAddress');
+
           return SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,15 +47,54 @@ class MyReceipt extends StatelessWidget {
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                        color: Theme.of(context).colorScheme.secondary),
-                  ),
-                  child: Text(
-                    receipt,
-                    style: const TextStyle(
-                      fontFamily: 'Roboto',
-                      fontSize: 14,
-                      height: 1.5,
+                      color: Theme.of(context).colorScheme.secondary,
                     ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total Items: $totalItems',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Total Price: ${restaurant.formatPrice(totalPrice)}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Delivery Address:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(deliveryAddress),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Receipt Details:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        receipt,
+                        style: const TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

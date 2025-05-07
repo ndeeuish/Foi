@@ -6,10 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirestoreService _firestoreService = FirestoreService();
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'],
-    signInOption: SignInOption.standard,
-  );
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   User? getCurrentUser() {
     return _firebaseAuth.currentUser;
@@ -62,40 +59,27 @@ class AuthService {
     }
   }
 
-  Future<void> signInWithGoogle() async {
+  Future<UserCredential?> signInWithGoogle() async {
     try {
-      print("Starting Google sign-in...");
-      await _googleSignIn.signOut();
-      print("Google sign-out completed.");
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        print("Google sign-in cancelled by user.");
-        throw Exception("Google sign-in cancelled by user.");
+      if (_googleSignIn.clientId == null) {
+        print('Google Sign In is not configured. Please add client ID to web/index.html');
+        return null;
       }
-      print("Google user: ${googleUser.email}");
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-      print(
-          "Google auth: accessToken=${googleAuth.accessToken}, idToken=${googleAuth.idToken}");
+
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return null;
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      UserCredential userCredential =
-          await _firebaseAuth.signInWithCredential(credential);
-      print("Firebase sign-in successful: ${userCredential.user?.email}");
-      await _firestoreService.saveUserProfile(userCredential.user!.uid, {
-        'name': googleUser.displayName,
-        'email': googleUser.email,
-        'phone': '',
-        'loginMethod': 'google',
-      });
-    } on FirebaseAuthException catch (e) {
-      print("FirebaseAuthException: ${e.message}");
-      throw Exception(e.message ?? "Google sign-in failed.");
+
+      return await _firebaseAuth.signInWithCredential(credential);
     } catch (e) {
-      print("General exception in Google sign-in: $e");
-      throw Exception(e.toString());
+      print('Error signing in with Google: $e');
+      return null;
     }
   }
 
@@ -175,21 +159,17 @@ class AuthService {
         throw Exception("User not logged in");
       }
 
-      // fill in the old password
       final credential = EmailAuthProvider.credential(
         email: user.email!,
         password: currentPassword,
       );
       await user.reauthenticateWithCredential(credential);
 
-      // update new pasword
       await user.updatePassword(newPassword);
     } on FirebaseAuthException catch (e) {
       throw Exception(e.code);
     }
   }
-
-  
 }
 
 
