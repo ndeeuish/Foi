@@ -33,10 +33,10 @@ exports.createVNPayPayment = onRequest({
         }
 
         const ipAddr = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-        const tmnCode = process.env.VNPAY_TMN_CODE;
-        const secretKey = process.env.VNPAY_SECRET_KEY;
-        const vnpUrl = process.env.VNPAY_URL || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-        const returnUrl = process.env.VNPAY_RETURN_URL;
+        const tmnCode = "NO2W1JM9"; 
+        const secretKey = "5W7EUSKQRVFMWJHCDRWUAMM2WMN7AVVC"; 
+        const vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+        const returnUrl = "https://vnpayreturn-fi5yhlbyqq-uc.a.run.app";
         
         if (!tmnCode || !secretKey || !returnUrl) {
             console.error('Missing VNPay configuration');
