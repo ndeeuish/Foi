@@ -8,6 +8,7 @@ import 'package:foi/components/my_sliver_app_bar.dart';
 import 'package:foi/components/my_tab_bar.dart';
 import 'package:foi/models/food.dart';
 import 'package:foi/models/restaurant.dart';
+import 'package:foi/pages/cart_page.dart';
 import 'package:foi/pages/food_page.dart';
 import 'package:provider/provider.dart';
 
@@ -83,7 +84,6 @@ class _HomePageState extends State<HomePage>
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Current location input
                     MyCurrentLocation(),
                   ],
                 ),
@@ -99,10 +99,19 @@ class _HomePageState extends State<HomePage>
         body: Consumer<Restaurant>(
           builder: (context, restaurant, child) => TabBarView(
             controller: _tabController,
-            // Display food items for each category
             children: getFoodInThisCategory(restaurant.menu),
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CartPage()),
+          );
+        },
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        child: const Icon(Icons.shopping_cart),
       ),
     );
   }
