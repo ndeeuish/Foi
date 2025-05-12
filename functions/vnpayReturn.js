@@ -24,13 +24,7 @@ exports.vnpayReturn = onRequest({
         delete vnpParams["vnp_SecureHash"];
         delete vnpParams["vnp_SecureHashType"];
 
-        const secretKey = process.env.VNPAY_SECRET_KEY;
-        if (!secretKey) {
-            console.error('Missing VNPay secret key');
-            res.status(500).send("❌ Payment configuration error");
-            return;
-        }
-
+        const secretKey = "5W7EUSKQRVFMWJHCDRWUAMM2WMN7AVVC";
         const sortedVnpParams = Object.keys(vnpParams)
             .sort()
             .reduce((obj, key) => {
@@ -46,29 +40,13 @@ exports.vnpayReturn = onRequest({
             const responseCode = vnpParams["vnp_ResponseCode"];
             const txnRef = vnpParams["vnp_TxnRef"];
 
-            if (!txnRef) {
-                console.error('Missing transaction reference');
-                res.status(400).send("❌ Missing transaction reference");
-                return;
-            }
+            await admin.firestore().collection("orders").doc(txnRef).set({
+                paymentStatus: responseCode === "00" ? "Paid" : "Failed",
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
 
-            try {
-                await admin
-                    .firestore()
-                    .collection("orders")
-                    .doc(txnRef)
-                    .set({
-                        paymentStatus: responseCode === "00" ? "success" : "failed",
-                        vnpayResponse: req.query,
-                        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true });
-
-                console.log(`✅ Payment result updated for order ${txnRef}`);
-                res.send("✅ Payment result updated successfully");
-            } catch (error) {
-                console.error(`❌ Error updating order ${txnRef}:`, error);
-                res.status(500).send("❌ Error updating order");
-            }
+            console.log(`✅ Payment result updated for order ${txnRef}`);
+            res.send("✅ Payment result updated successfully");
         } else {
             console.error("❌ Invalid Signature");
             res.status(400).send("❌ Invalid signature");

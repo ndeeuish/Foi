@@ -2,21 +2,16 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class VNPayService {
-  static const String _functionUrl = 'https://createvnpaypayment-fi5yhlbyqq-uc.a.run.app';
-
+  static const String _functionUrl = 'https://us-central1-fooddelivery-c4d4d.cloudfunctions.net/createVnpayPayment';
+  
   Future<String?> getPaymentUrl(double amount) async {
     try {
       final url = Uri.parse(_functionUrl);
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'amount': amount,
-        }),
-      );
-
+      final response = await http.get(
+  Uri.parse('$_functionUrl?amount=$amount&orderInfo=TestOrder'),
+);
+      print('Response body: ${response.body}');
+      
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return data['paymentUrl'];

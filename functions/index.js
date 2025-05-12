@@ -8,11 +8,11 @@
  */
 
 const { logger } = require("firebase-functions");
-const { createVNPayPayment } = require("./create_vnpay_payment");
+const { createVnpayPayment } = require('./create_vnpay_payment');
 const { vnpayReturn } = require("./vnpayReturn");
 
 // Export functions
-exports.createVNPayPayment = createVNPayPayment;
+exports.createVnpayPayment = createVnpayPayment;
 exports.vnpayReturn = vnpayReturn;
 
 // Global error handler

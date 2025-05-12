@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:foi/models/restaurant.dart';
 import 'package:provider/provider.dart';
 import 'package:foi/payment/vnpay/vnpay_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PaymentPage extends StatefulWidget {
   final double basePrice;
@@ -74,6 +75,9 @@ class _PaymentPageState extends State<PaymentPage> {
             print('PaymentPage - VNPAY - URL can be launched. Launching...');
             await launchUrl(uri, mode: LaunchMode.externalApplication);
             print('PaymentPage - VNPAY - URL launched successfully.');
+
+            // Kiểm tra trạng thái thanh toán sau khi quay lại ứng dụng
+            checkPaymentStatus();
           } else {
             print('PaymentPage - VNPAY - URL cannot be launched.');
             ScaffoldMessenger.of(context).showSnackBar(
@@ -139,11 +143,11 @@ class _PaymentPageState extends State<PaymentPage> {
             onPressed: () async {
               print('PaymentPage - Confirmation dialog - Yes button pressed.');
               Navigator.pop(context);
-              
+
               // Tạo receipt và cập nhật payment status
               final receipt = restaurant.displayCartReceipt();
               restaurant.updatePaymentStatus("Paid");
-              
+
               // Chuyển đến trang delivery progress với receipt và payment status
               Navigator.push(
                 context,
@@ -154,7 +158,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   ),
                 ),
               );
-              
+
               // Clear cart sau khi đã chuyển trang
               restaurant.clearCart();
             },
@@ -171,6 +175,35 @@ class _PaymentPageState extends State<PaymentPage> {
         ],
       ),
     );
+  }
+
+  Future<void> checkPaymentStatus() async {
+    // Thay thế bằng mã giao dịch thực tế
+    final txnRef = "20250511155241";
+
+    final doc = await FirebaseFirestore.instance
+        .collection('orders')
+        .doc(txnRef)
+        .get();
+
+    if (doc.exists) {
+      final paymentStatus = doc.data()?['paymentStatus'];
+      if (paymentStatus == 'success') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DeliveryProgressPage(
+              receipt: "Your receipt ID here", // Thay bằng giá trị thực tế
+              paymentStatus: "Paid",
+            ),
+          ),
+        );
+      } else if (paymentStatus == 'failed') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Thanh toán thất bại. Vui lòng thử lại.")),
+        );
+      }
+    }
   }
 
   @override
