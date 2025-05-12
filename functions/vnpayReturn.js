@@ -41,7 +41,7 @@ exports.vnpayReturn = onRequest({
             const txnRef = vnpParams["vnp_TxnRef"];
 
             await admin.firestore().collection("orders").doc(txnRef).set({
-                paymentStatus: responseCode === "00" ? "Paid" : "Failed",
+                paymentStatus: responseCode === "00" ? "success" : "Failed",
                 updatedAt: admin.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
 

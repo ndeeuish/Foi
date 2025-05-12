@@ -54,8 +54,9 @@ exports.createVnpayPayment = functions.https.onRequest((req, res) => {
 
             const paymentUrl = `${vnp_Url}?${query}&vnp_SecureHashType=SHA512&vnp_SecureHash=${signed}`;
 
-            res.json({ paymentUrl });
+            res.json({ paymentUrl, txnRef: vnp_TxnRef });
             console.log("Payment URL:", paymentUrl);
+            console.log("Transaction Reference (txnRef):", vnp_TxnRef);
 
         } catch (error) {
             console.error("Lỗi tạo URL thanh toán:", error);

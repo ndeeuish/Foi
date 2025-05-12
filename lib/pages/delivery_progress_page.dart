@@ -38,7 +38,7 @@ class _DeliveryProgressPageState extends State<DeliveryProgressPage> {
       await db.saveOrderToDatabase(widget.receipt, widget.paymentStatus);
       
       // Clear cart sau khi đã lưu order
-      restaurant.clearCart();
+      //restaurant.clearCart();
     } catch (e) {
       print('DeliveryProgressPage - Error saving order: $e');
     }
@@ -48,23 +48,39 @@ class _DeliveryProgressPageState extends State<DeliveryProgressPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Delivery in progress"),
+        title: const Text("Delivery in progress..."),
         backgroundColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () {
+            final restaurant = context.read<Restaurant>();
+            restaurant.clearCart(); 
             Navigator.of(context).popUntil((route) => route.isFirst);
           },
         ),
       ),
       bottomNavigationBar: _buildBottomNavBar(context),
-      body: Column(
-        children: [
-          MyReceipt(
-            receipt: widget.receipt,
-            paymentStatus: widget.paymentStatus,
-          ),
-        ],
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Order Details",
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 10),
+            Text(widget.receipt), // Hiển thị receipt từ giỏ hàng
+            const SizedBox(height: 20),
+            Text(
+              "Payment Status: ${widget.paymentStatus}",
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

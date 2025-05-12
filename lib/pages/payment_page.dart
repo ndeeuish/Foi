@@ -8,6 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:foi/payment/vnpay/vnpay_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'vnpay_payment_page.dart';
+
 class PaymentPage extends StatefulWidget {
   final double basePrice;
   final double discountAmount;
@@ -62,49 +64,18 @@ class _PaymentPageState extends State<PaymentPage> {
     }
 
     if (widget.selectedPaymentMethod == "VNPAY") {
-      print(
-          'PaymentPage - VNPAY selected. Calling VNPay service to get payment URL.');
-      final paymentUrl = await _vnpayService.getPaymentUrl(widget.totalPrice);
-
-      if (paymentUrl != null) {
-        print('PaymentPage - VNPAY - Payment URL received: $paymentUrl');
-        try {
-          final Uri uri = Uri.parse(paymentUrl);
-          print('PaymentPage - VNPAY - Parsed URI: $uri');
-          if (await canLaunchUrl(uri)) {
-            print('PaymentPage - VNPAY - URL can be launched. Launching...');
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
-            print('PaymentPage - VNPAY - URL launched successfully.');
-
-            // Kiểm tra trạng thái thanh toán sau khi quay lại ứng dụng
-            checkPaymentStatus();
-          } else {
-            print('PaymentPage - VNPAY - URL cannot be launched.');
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text("Không thể mở URL thanh toán VNPAY")),
-            );
-          }
-        } catch (e) {
-          print(
-              'PaymentPage - VNPAY - An error occurred while launching URL: $e');
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text("Đã xảy ra lỗi khi mở URL thanh toán")),
-          );
-        }
-      } else {
-        print('PaymentPage - VNPAY - Failed to get payment URL from service.');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Lỗi khi tạo URL thanh toán VNPAY")),
-        );
-      }
-      print('PaymentPage - VNPAY - Finished processing.');
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => VNPayPaymentPage(amount: widget.totalPrice),
+        ),
+      );
       return;
     }
 
     print(
         'PaymentPage - Payment method is ${widget.selectedPaymentMethod}. Showing confirmation dialog.');
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -175,35 +146,6 @@ class _PaymentPageState extends State<PaymentPage> {
         ],
       ),
     );
-  }
-
-  Future<void> checkPaymentStatus() async {
-    // Thay thế bằng mã giao dịch thực tế
-    final txnRef = "20250511155241";
-
-    final doc = await FirebaseFirestore.instance
-        .collection('orders')
-        .doc(txnRef)
-        .get();
-
-    if (doc.exists) {
-      final paymentStatus = doc.data()?['paymentStatus'];
-      if (paymentStatus == 'success') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DeliveryProgressPage(
-              receipt: "Your receipt ID here", // Thay bằng giá trị thực tế
-              paymentStatus: "Paid",
-            ),
-          ),
-        );
-      } else if (paymentStatus == 'failed') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Thanh toán thất bại. Vui lòng thử lại.")),
-        );
-      }
-    }
   }
 
   @override
