@@ -151,6 +151,17 @@ class FirestoreService {
       throw Exception('Failed to get user orders: $e');
     }
   }
+  
+  Future<void> updateOrderStatus(String orderId, String status) async {
+    try {
+      final orderRef = _firestore.collection('orders').doc(orderId);
+      await orderRef.update({'paymentStatus': status});
+      print('Order $orderId updated to status: $status');
+    } catch (e) {
+      print('Error updating order status: $e');
+      throw Exception('Failed to update order status');
+    }
+  }
 
   // Seed sample data vào database
   // Future<void> seedSampleData() async {

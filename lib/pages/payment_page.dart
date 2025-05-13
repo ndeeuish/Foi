@@ -115,8 +115,9 @@ class _PaymentPageState extends State<PaymentPage> {
               Navigator.pop(context);
 
               // Tạo receipt và cập nhật payment status
-              final receipt = restaurant.displayCartReceipt();
-              restaurant.updatePaymentStatus("Paid");
+              restaurant.updatePaymentStatus("Pending");
+              final status = restaurant.paymentStatus;
+              final receipt = restaurant.displayCartReceipt();         
 
               // Chuyển đến trang delivery progress với receipt và payment status
               Navigator.push(
@@ -124,7 +125,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 MaterialPageRoute(
                   builder: (context) => DeliveryProgressPage(
                     receipt: receipt,
-                    paymentStatus: "Paid",
+                    paymentStatus: status,
                   ),
                 ),
               );
