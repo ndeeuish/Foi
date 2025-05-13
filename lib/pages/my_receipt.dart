@@ -15,8 +15,11 @@ class MyReceipt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Padding(
-      padding: const EdgeInsets.all(25.0),
+      padding: const EdgeInsets.all(20.0),
       child: Consumer<Restaurant>(
         builder: (context, restaurant, child) {
           final totalItems = restaurant.getTotalItemCount();
@@ -33,65 +36,56 @@ class MyReceipt extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Order Receipt",
-                  style: TextStyle(
-                    fontSize: 18,
+                  "Order Summary",
+                  style: textTheme.headlineSmall?.copyWith(
+                    color: colorScheme.primary,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.inversePrimary,
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.all(15),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.secondary,
-                    ),
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: colorScheme.outline),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Total Items: $totalItems',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'Total Price: ${restaurant.formatPrice(totalPrice)}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Delivery Address:',
-                        style: TextStyle(
+                      const SizedBox(height: 8),
+                      Text(
+                        'Payment Status',
+                        style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
+                          color: colorScheme.onSecondary,
                         ),
                       ),
-                      Text(deliveryAddress),
+                      const SizedBox(height: 8),
+                      Text(
+                        paymentStatus,
+                        style: textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w500,
+                          color: paymentStatus.toLowerCase() == 'paid'
+                              ? Colors.green[700]
+                              : Colors.orange[700],
+                        ),
+                      ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Receipt Details:',
-                        style: TextStyle(
+                      Text(
+                        'Order Details',
+                        style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
+                          color: colorScheme.onSecondary,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         receipt,
-                        style: const TextStyle(
+                        style: textTheme.bodyMedium?.copyWith(
                           fontFamily: 'Roboto',
-                          fontSize: 14,
-                          height: 1.5,
+                          fontSize: 18,
+                          height: 1.3,
                         ),
                       ),
                     ],

@@ -43,18 +43,21 @@ class Restaurant extends ChangeNotifier {
       final user = _authService.getCurrentUser();
       if (user != null) {
         final profile = await _firestoreService.getUserProfile(user.uid);
-        if (profile != null && profile['address'] != null && profile['address'].toString().isNotEmpty) {
+        if (profile != null &&
+            profile['address'] != null &&
+            profile['address'].toString().isNotEmpty) {
           _deliveryAddress = profile['address'];
-          print('Restaurant - Loaded user address from profile: $_deliveryAddress');
+          print(
+              'Restaurant - Loaded user address from profile: $_deliveryAddress');
         } else {
           print('Restaurant - No address found in user profile');
-          _deliveryAddress = ""; // Reset to empty string if no address found
+          _deliveryAddress = "";
         }
         notifyListeners();
       }
     } catch (e) {
       print('Restaurant - Error initializing user address: $e');
-      _deliveryAddress = ""; // Reset to empty string on error
+      _deliveryAddress = "";
       notifyListeners();
     }
   }
@@ -147,9 +150,8 @@ class Restaurant extends ChangeNotifier {
   // Get food items by addon
   List<Food> getFoodByAddon(String addonName) {
     return _menu
-        .where((food) =>
-            food.availableAddons.any((addon) =>
-                addon.name.toLowerCase().contains(addonName.toLowerCase())))
+        .where((food) => food.availableAddons.any((addon) =>
+            addon.name.toLowerCase().contains(addonName.toLowerCase())))
         .toList();
   }
 
@@ -161,8 +163,7 @@ class Restaurant extends ChangeNotifier {
   // Get food items by name
   List<Food> getFoodByName(String name) {
     return _menu
-        .where((food) =>
-            food.name.toLowerCase().contains(name.toLowerCase()))
+        .where((food) => food.name.toLowerCase().contains(name.toLowerCase()))
         .toList();
   }
 
@@ -205,17 +206,14 @@ class Restaurant extends ChangeNotifier {
   }
 
   // Get food items by category and price
-  List<Food> getFoodByCategoryAndPrice(
-      FoodCategory category, double price) {
+  List<Food> getFoodByCategoryAndPrice(FoodCategory category, double price) {
     return _menu
-        .where((food) =>
-            food.category == category && food.price == price)
+        .where((food) => food.category == category && food.price == price)
         .toList();
   }
 
   // Get food items by category and name
-  List<Food> getFoodByCategoryAndName(
-      FoodCategory category, String name) {
+  List<Food> getFoodByCategoryAndName(FoodCategory category, String name) {
     return _menu
         .where((food) =>
             food.category == category &&
@@ -255,19 +253,17 @@ class Restaurant extends ChangeNotifier {
 
   // Add to cart
   void addToCart(Food food, List<Addon> selectedAddons) {
-    CartItem? cartItem = _cart.firstWhere(
-      (item) {
-        bool isSameFood = item.food == food;
-        bool isSameAddons = listEquals(item.selectedAddons, selectedAddons);
-        return isSameFood && isSameAddons;
-      },
-      orElse: () => CartItem(food: food, selectedAddons: selectedAddons),
-    );
+    final existingIndex = _cart.indexWhere((item) =>
+        item.food == food && listEquals(item.selectedAddons, selectedAddons));
 
-    if (_cart.contains(cartItem)) {
-      cartItem.quantity++;
+    if (existingIndex >= 0) {
+      _cart[existingIndex].quantity++;
     } else {
-      _cart.add(cartItem);
+      _cart.add(CartItem(
+        food: food,
+        selectedAddons: selectedAddons,
+        quantity: 1,
+      ));
     }
     notifyListeners();
   }
@@ -397,6 +393,13 @@ class Restaurant extends ChangeNotifier {
     _cart.clear();
     clearVoucher();
     notifyListeners();
+  }
+
+  // Reset delivery address
+  void resetDeliveryAddress() {
+    _deliveryAddress = "";
+    notifyListeners();
+    print('Restaurant - Delivery address reset');
   }
 }
 

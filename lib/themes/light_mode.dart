@@ -13,8 +13,8 @@ import 'package:flutter/material.dart';
 ThemeData lightMode = ThemeData(
   colorScheme: ColorScheme.light(
     surface: Colors.white, // White background
-    primary: Color(
-        0xFF1A237E), // Deep blue for primary elements (titles, important text)
+    primary: Color.fromARGB(255, 96, 103,
+        175), // Deep blue for primary elements (titles, important text)
     secondary: Color(0xFFE0E0E0), // Light gray for secondary elements
     tertiary: Color(0xFFF5F5F5), // Light gray for tertiary elements
     inversePrimary: Color(0xFF1A1A1A), // Darker text for light mode

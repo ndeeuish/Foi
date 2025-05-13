@@ -1,7 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:foi/auth/database/firestore.dart';
+import 'package:foi/models/restaurant.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
 
 class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -49,9 +52,17 @@ class AuthService {
     }
   }
 
-  Future<void> signOut() async {
+  Future<void> signOut(BuildContext context) async {
     try {
       await FacebookAuth.instance.logOut();
+      await _googleSignIn.signOut();
+      await _firebaseAuth.signOut();
+      if (context.mounted) {
+        final restaurant = Provider.of<Restaurant>(context, listen: false);
+        restaurant.resetDeliveryAddress();
+        restaurant.clearCart();
+      }
+
       await _googleSignIn.signOut();
       await _firebaseAuth.signOut();
     } catch (e) {
@@ -61,25 +72,29 @@ class AuthService {
 
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      if (_googleSignIn.clientId == null) {
-        print('Google Sign In is not configured. Please add client ID to web/index.html');
-        return null;
+      print("Starting Google sign-in...");
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        // Người dùng hủy đăng nhập
+        print("Google Sign-In cancelled by user.");
+        throw Exception("Google Sign-In cancelled by user.");
       }
 
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null;
-
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      return await _firebaseAuth.signInWithCredential(credential);
+      final userCredential =
+          await _firebaseAuth.signInWithCredential(credential);
+      print("Google Sign-In successful: ${userCredential.user?.email}");
+      return userCredential;
     } catch (e) {
-      print('Error signing in with Google: $e');
-      return null;
+      print("Error during Google Sign-In: $e");
+      throw Exception("Google Sign-In failed: $e");
     }
   }
 
@@ -171,5 +186,3 @@ class AuthService {
     }
   }
 }
-
-

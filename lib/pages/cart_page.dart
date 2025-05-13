@@ -49,8 +49,16 @@ class _CartPageState extends State<CartPage> {
       setState(() => _voucherError = null);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Voucher applied successfully! Discount ${restaurant.formatPrice(result['discount'])}',
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.green.shade700,
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 12),
+              Text(
+                'Voucher applied! Discount ${restaurant.formatPrice(result['discount'])}',
+              ),
+            ],
           ),
         ),
       );
@@ -61,7 +69,17 @@ class _CartPageState extends State<CartPage> {
         () => _voucherError = e.toString().replaceFirst('Exception: ', ''),
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_voucherError!)),
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red.shade700,
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Flexible(child: Text(_voucherError!)),
+            ],
+          ),
+        ),
       );
       print('CartPage - Voucher error: $e');
     }
@@ -69,6 +87,9 @@ class _CartPageState extends State<CartPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: _deliveryService),
@@ -85,12 +106,14 @@ class _CartPageState extends State<CartPage> {
               : restaurant.formatPrice(restaurant.deliveryFee * 1000);
           print(
               'CartPage - basePrice=$basePrice, discountAmount=$discountAmount, voucherCode=$voucherCode, totalPrice=$totalPrice, deliveryFee=$deliveryFee');
+
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Cart'),
+              title: const Text('Your Cart'),
               centerTitle: true,
-              backgroundColor: Colors.transparent,
-              foregroundColor: Theme.of(context).colorScheme.inversePrimary,
+              elevation: 0,
+              backgroundColor: colorScheme.surface,
+              foregroundColor: colorScheme.primary,
               actions: [
                 IconButton(
                   onPressed: userCart.isEmpty
@@ -99,324 +122,590 @@ class _CartPageState extends State<CartPage> {
                           showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
-                              title: const Text(
-                                  'Are you sure you want to clear the cart?'),
+                              title: const Text('Clear cart?'),
+                              content: const Text(
+                                  'All items will be removed from your cart.'),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(context),
-                                  child: const Text('Cancel'),
+                                  child: Text('Cancel',
+                                      style: TextStyle(
+                                          color: colorScheme.secondary)),
                                 ),
-                                TextButton(
+                                ElevatedButton(
                                   onPressed: () {
                                     Navigator.pop(context);
                                     restaurant.clearCart();
                                     _voucherController.clear();
                                     setState(() => _voucherError = null);
                                   },
-                                  child: const Text('Yes'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: colorScheme.error,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: const Text('Clear'),
                                 ),
                               ],
                             ),
                           );
                         },
-                  icon: const Icon(Icons.delete),
+                  icon: Icon(
+                    Icons.delete_outlined,
+                    color: userCart.isEmpty ? Colors.grey : colorScheme.error,
+                  ),
                 ),
               ],
             ),
-            body: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Order Summary',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  userCart.isEmpty
-                      ? const Center(child: Text('Cart is empty'))
-                      : ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: userCart.length,
-                          itemBuilder: (context, index) {
-                            final cartItem = userCart[index];
-                            return Dismissible(
-                              key: ValueKey(cartItem.food.name +
-                                  cartItem.quantity.toString()),
-                              direction: DismissDirection.endToStart,
-                              onDismissed: (direction) =>
-                                  _removeFromCart(restaurant, cartItem),
-                              background: Container(
-                                color: Colors.red,
-                                alignment: Alignment.centerRight,
-                                padding: const EdgeInsets.only(right: 20),
-                                child: const Icon(Icons.delete,
-                                    color: Colors.white),
+            body: userCart.isEmpty
+                ? _buildEmptyCart(colorScheme)
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Order Summary Section
+                        _buildSectionHeader('Order Summary', textTheme),
+                        const SizedBox(height: 12),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                spreadRadius: 1,
+                                blurRadius: 5,
+                                offset: const Offset(0, 1),
                               ),
-                              child: MyCartTile(cartItem: cartItem),
-                            );
-                          },
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 8),
-                        ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Delivery Address',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  StreamBuilder<String>(
-                    stream: _addressStreamController.stream,
-                    builder: (context, snapshot) {
-                      final address =
-                          snapshot.data ?? restaurant.deliveryAddress;
-                      print(
-                          'CartPage - StreamBuilder triggered for address: $address');
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          GestureDetector(
-                            onTap: () async {
-                              await MyCurrentLocation()
-                                  .openLocationSearchBox(context);
-                              final restaurant = Provider.of<Restaurant>(
-                                  context,
-                                  listen: false);
-                              _addressStreamController
-                                  .add(restaurant.deliveryAddress);
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      restaurant.deliveryAddress.isEmpty
-                                          ? 'Select Address'
-                                          : restaurant.deliveryAddress,
-                                      style: TextStyle(
-                                        color:
-                                            restaurant.deliveryAddress.isEmpty
-                                                ? Colors.grey
-                                                : Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  const Icon(Icons.edit),
-                                ],
-                              ),
-                            ),
+                            ],
                           ),
-                          const SizedBox(height: 8),
-                          FutureBuilder<double>(
-                            future: _deliveryService.fetchDistance(address),
-                            builder: (context, distanceSnapshot) {
-                              if (distanceSnapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Text(
-                                  'Delivery Distance: Loading...',
-                                  style: TextStyle(
-                                      fontSize: 14, color: Colors.grey),
-                                );
-                              }
-                              if (distanceSnapshot.hasError) {
-                                print(
-                                    'CartPage - Distance fetch error: ${distanceSnapshot.error}');
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      distanceSnapshot.error.toString().contains(
-                                              'Delivery only available within Vietnam')
-                                          ? 'Delivery only available within Vietnam. Please enter a valid address.'
-                                          : 'Unable to calculate distance. Please check your address or network connection.',
-                                    ),
+                          child: ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: userCart.length,
+                            itemBuilder: (context, index) {
+                              final cartItem = userCart[index];
+                              return Dismissible(
+                                key: ValueKey(cartItem.food.name +
+                                    cartItem.quantity.toString()),
+                                direction: DismissDirection.endToStart,
+                                onDismissed: (direction) =>
+                                    _removeFromCart(restaurant, cartItem),
+                                background: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                );
-                                return const Text(
-                                  'Delivery Distance: 0.00 km',
-                                  style: TextStyle(
-                                      fontSize: 14, color: Colors.grey),
-                                );
-                              }
-                              final distance = distanceSnapshot.data ?? 0.0;
-                              return Text(
-                                'Delivery Distance: ${distance.toStringAsFixed(2)} km',
-                                style: const TextStyle(
-                                    fontSize: 14, color: Colors.grey),
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.only(right: 20),
+                                  child: const Icon(Icons.delete,
+                                      color: Colors.white),
+                                ),
+                                child: MyCartTile(cartItem: cartItem),
                               );
                             },
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Select Payment Method:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  DropdownButton<String>(
-                    value: _selectedPaymentMethod,
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedPaymentMethod = newValue!;
-                      });
-                    },
-                    items: <String>['Cash', 'Card', 'VNPAY']
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Promo Code',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _voucherController,
-                          decoration: InputDecoration(
-                            hintText: 'Enter promo code',
-                            errorText: _voucherError,
-                            border: const OutlineInputBorder(),
-                          ),
-                          style: const TextStyle(fontFamily: 'Roboto'),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      MaterialButton(
-                        onPressed: userCart.isEmpty
-                            ? null
-                            : () => _applyVoucher(restaurant),
-                        color: Theme.of(context).colorScheme.primary,
-                        child: const Text(
-                          'Apply',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Subtotal:',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          Text(
-                            restaurant.formatPrice(basePrice),
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Delivery Fee:',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          Text(
-                            deliveryFee,
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Discount (${discountAmount > 0 ? voucherCode : 'None'}):',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: discountAmount > 0
-                                  ? Colors.green
-                                  : Colors.grey,
+                            separatorBuilder: (context, index) => Divider(
+                              height: 1,
+                              thickness: 1,
+                              color: Colors.grey.shade100,
+                              indent: 16,
+                              endIndent: 16,
                             ),
                           ),
-                          Text(
-                            discountAmount > 0
-                                ? '-${restaurant.formatPrice(discountAmount)}'
-                                : '0 VND',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: discountAmount > 0
-                                  ? Colors.green
-                                  : Colors.grey,
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Delivery Address Section
+                        _buildSectionHeader('Delivery Address', textTheme),
+                        const SizedBox(height: 12),
+                        _buildDeliveryAddressSection(restaurant, colorScheme),
+                        const SizedBox(height: 24),
+
+                        // Payment Method Section
+                        _buildSectionHeader('Payment Method', textTheme),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                spreadRadius: 1,
+                                blurRadius: 5,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              isExpanded: true,
+                              value: _selectedPaymentMethod,
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  _selectedPaymentMethod = newValue!;
+                                });
+                              },
+                              icon: Icon(Icons.keyboard_arrow_down,
+                                  color: colorScheme.primary),
+                              items: <String>[
+                                'Cash',
+                                'Card',
+                                'VNPAY'
+                              ].map<DropdownMenuItem<String>>((String value) {
+                                IconData icon;
+                                switch (value) {
+                                  case 'Cash':
+                                    icon = Icons.money;
+                                    break;
+                                  case 'Card':
+                                    icon = Icons.credit_card;
+                                    break;
+                                  case 'VNPAY':
+                                    icon = Icons.payment;
+                                    break;
+                                  default:
+                                    icon = Icons.payment;
+                                }
+
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Row(
+                                    children: [
+                                      Icon(icon,
+                                          color: colorScheme.primary, size: 22),
+                                      const SizedBox(width: 12),
+                                      Text(value, style: textTheme.titleMedium),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Total:',
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Promo Code Section
+                        _buildSectionHeader('Promo Code', textTheme),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                spreadRadius: 1,
+                                blurRadius: 5,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
                           ),
-                          Text(
-                            restaurant.formatPrice(totalPrice),
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Align(
-                        alignment: Alignment.center,
-                        child: MyButton(
-                          text: 'Checkout',
-                          onTap: userCart.isEmpty ||
-                                  restaurant.deliveryAddress.isEmpty ||
-                                  _selectedPaymentMethod == 'Not selected'
-                              ? null
-                              : () {
-                                  print(
-                                      'CartPage - Navigating to PaymentPage with method: $_selectedPaymentMethod');
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => PaymentPage(
-                                        selectedPaymentMethod:
-                                            _selectedPaymentMethod,
-                                        basePrice: basePrice,
-                                        discountAmount: discountAmount,
-                                        voucherCode: restaurant.voucherCode,
-                                        deliveryFee: restaurant.deliveryFee,
-                                        totalPrice: totalPrice,
-                                      ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _voucherController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Enter promo code',
+                                    errorText: _voucherError,
+                                    filled: true,
+                                    fillColor: Colors.grey.shade50,
+                                    prefixIcon: Icon(Icons.discount_outlined,
+                                        color: colorScheme.primary),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide.none,
                                     ),
-                                  );
-                                },
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        vertical: 0, horizontal: 16),
+                                  ),
+                                  style: textTheme.bodyMedium,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              ElevatedButton(
+                                onPressed: userCart.isEmpty
+                                    ? null
+                                    : () => _applyVoucher(restaurant),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: colorScheme.primary,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text('Apply'),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 24),
+
+                        // Order Summary Section
+                        _buildSectionHeader('Order Total', textTheme),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                spreadRadius: 1,
+                                blurRadius: 5,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              _buildPriceSummaryRow(
+                                'Subtotal',
+                                restaurant.formatPrice(basePrice),
+                                textTheme,
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8),
+                                child: Divider(height: 1),
+                              ),
+                              _buildPriceSummaryRow(
+                                'Delivery Fee',
+                                deliveryFee,
+                                textTheme,
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8),
+                                child: Divider(height: 1),
+                              ),
+                              _buildPriceSummaryRow(
+                                'Discount (${discountAmount > 0 ? voucherCode : 'None'})',
+                                discountAmount > 0
+                                    ? '-${restaurant.formatPrice(discountAmount)}'
+                                    : '0 VND',
+                                textTheme,
+                                valueColor: discountAmount > 0
+                                    ? Colors.green
+                                    : Colors.grey,
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8),
+                                child: Divider(height: 1),
+                              ),
+                              _buildPriceSummaryRow(
+                                'Total',
+                                restaurant.formatPrice(totalPrice),
+                                textTheme.copyWith(
+                                  titleMedium: textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                isBold: true,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
+            bottomNavigationBar: userCart.isEmpty
+                ? null
+                : Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 1,
+                          blurRadius: 10,
+                          offset: const Offset(0, -1),
+                        ),
+                      ],
+                    ),
+                    child: MyButton(
+                      text: 'Checkout · ${restaurant.formatPrice(totalPrice)}',
+                      onTap: userCart.isEmpty ||
+                              restaurant.deliveryAddress.isEmpty ||
+                              _selectedPaymentMethod == 'Not selected'
+                          ? null
+                          : () {
+                              print(
+                                  'CartPage - Navigating to PaymentPage with method: $_selectedPaymentMethod');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PaymentPage(
+                                    selectedPaymentMethod:
+                                        _selectedPaymentMethod,
+                                    basePrice: basePrice,
+                                    discountAmount: discountAmount,
+                                    voucherCode: restaurant.voucherCode,
+                                    deliveryFee: restaurant.deliveryFee,
+                                    totalPrice: totalPrice,
+                                  ),
+                                ),
+                              );
+                            },
+                    ),
+                  ),
           );
         },
       ),
+    );
+  }
+
+  Widget _buildEmptyCart(ColorScheme colorScheme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.shopping_cart_outlined,
+            size: 80,
+            color: colorScheme.primary.withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Your cart is empty',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Add some delicious items to your cart',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.restaurant_menu),
+            label: const Text('Browse Menu'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, TextTheme textTheme) {
+    return Text(
+      title,
+      style: textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.bold,
+        fontSize: 18,
+      ),
+    );
+  }
+
+  Widget _buildDeliveryAddressSection(
+      Restaurant restaurant, ColorScheme colorScheme) {
+    return StreamBuilder<String>(
+      stream: _addressStreamController.stream,
+      builder: (context, snapshot) {
+        final address = snapshot.data ?? restaurant.deliveryAddress;
+        print('CartPage - StreamBuilder triggered for address: $address');
+
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 5,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GestureDetector(
+                onTap: () async {
+                  await MyCurrentLocation().openLocationSearchBox(context);
+                  final restaurant =
+                      Provider.of<Restaurant>(context, listen: false);
+                  _addressStreamController.add(restaurant.deliveryAddress);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        color: colorScheme.primary,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Delivery Location',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              restaurant.deliveryAddress.isEmpty
+                                  ? 'Select Delivery Address'
+                                  : restaurant.deliveryAddress,
+                              style: TextStyle(
+                                color: restaurant.deliveryAddress.isEmpty
+                                    ? Colors.grey.shade400
+                                    : Colors.black87,
+                                fontWeight: restaurant.deliveryAddress.isEmpty
+                                    ? FontWeight.normal
+                                    : FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.edit_location_alt_outlined,
+                          color: colorScheme.primary,
+                          size: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: FutureBuilder<double>(
+                  future: _deliveryService.fetchDistance(address),
+                  builder: (context, distanceSnapshot) {
+                    Icon icon;
+                    String text;
+                    Color color;
+
+                    if (distanceSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      icon = Icon(Icons.sync,
+                          color: Colors.amber.shade800, size: 18);
+                      text = 'Calculating delivery distance...';
+                      color = Colors.amber.shade800;
+                    } else if (distanceSnapshot.hasError) {
+                      print(
+                          'CartPage - Distance fetch error: ${distanceSnapshot.error}');
+                      icon = Icon(Icons.error_outline,
+                          color: Colors.red.shade700, size: 18);
+                      text = distanceSnapshot.error.toString().contains(
+                              'Delivery only available within Vietnam')
+                          ? 'Delivery only available within Vietnam.'
+                          : 'Unable to calculate distance.';
+                      color = Colors.red.shade700;
+                    } else {
+                      final distance = distanceSnapshot.data ?? 0.0;
+                      icon = Icon(Icons.directions_bike_outlined,
+                          color: Colors.green.shade700, size: 18);
+                      text =
+                          'Delivery Distance: ${distance.toStringAsFixed(2)} km';
+                      color = Colors.green.shade700;
+                    }
+
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          icon,
+                          const SizedBox(width: 8),
+                          Text(
+                            text,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: color,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPriceSummaryRow(
+    String label,
+    String value,
+    TextTheme textTheme, {
+    Color? valueColor,
+    bool isBold = false,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: isBold
+              ? textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)
+              : textTheme.titleMedium,
+        ),
+        Text(
+          value,
+          style: isBold
+              ? textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: valueColor,
+                )
+              : textTheme.titleMedium?.copyWith(color: valueColor),
+        ),
+      ],
     );
   }
 

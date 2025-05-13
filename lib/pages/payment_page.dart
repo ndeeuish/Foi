@@ -75,7 +75,6 @@ class _PaymentPageState extends State<PaymentPage> {
 
     print(
         'PaymentPage - Payment method is ${widget.selectedPaymentMethod}. Showing confirmation dialog.');
-    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

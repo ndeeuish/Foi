@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:foi/auth/services/auth_service.dart';
 import 'package:foi/components/my_button.dart';
-import 'package:foi/components/my_textfield.dart';
 import 'package:foi/pages/home_page.dart';
 
 class RegisterPage extends StatefulWidget {
   final void Function()? onTap;
 
-  const RegisterPage({super.key, required this.onTap});
+  const RegisterPage({
+    super.key,
+    required this.onTap,
+  });
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -20,12 +22,12 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+  bool _isPasswordHidden = true; // Biến trạng thái để ẩn/hiện password
+  bool _isConfirmPasswordHidden = true; // Biến trạng thái cho confirm password
 
-  // Register method
   void register() async {
     final _authService = AuthService();
 
-    // Kiểm tra các trường có trống không
     if (nameController.text.isEmpty ||
         emailController.text.isEmpty ||
         phoneController.text.isEmpty ||
@@ -34,8 +36,8 @@ class _RegisterPageState extends State<RegisterPage> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text("Error"),
-          content: Text("Please fill in all required fields"),
+          title: const Text("Error"),
+          content: const Text("Please fill in all required fields"),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -47,13 +49,12 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    // Kiểm tra mật khẩu có khớp không
     if (passwordController.text != confirmPasswordController.text) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text("Error"),
-          content: Text("Passwords don't match!"),
+          title: const Text("Error"),
+          content: const Text("Passwords don't match!"),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -65,7 +66,6 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    // Hiển thị loading
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -109,97 +109,199 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 50),
-              // Logo
-              Icon(
-                Icons.lock_open_rounded,
-                size: 100,
-                color: Theme.of(context).colorScheme.inversePrimary,
-              ),
-              const SizedBox(height: 25),
-              // Message, slogan
-              Text(
-                "Let's create an account for you",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                ),
-              ),
-              const SizedBox(height: 25),
-              // Name
-              MyTextField(
-                controller: nameController,
-                hintText: "Name",
-                obscureText: false,
-                keyboardType: TextInputType.text,
-              ),
-              const SizedBox(height: 10),
-              // Email
-              MyTextField(
-                controller: emailController,
-                hintText: "Email",
-                obscureText: false,
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 10),
-              // Phone
-              MyTextField(
-                controller: phoneController,
-                hintText: "Phone",
-                obscureText: false,
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 10),
-              // Password
-              MyTextField(
-                controller: passwordController,
-                hintText: "Password",
-                obscureText: true,
-                keyboardType: TextInputType.text,
-              ),
-              const SizedBox(height: 10),
-              // Confirm password
-              MyTextField(
-                controller: confirmPasswordController,
-                hintText: "Confirm password",
-                obscureText: true,
-                keyboardType: TextInputType.text,
-              ),
-              const SizedBox(height: 25),
-              // Sign up button
-              MyButton(text: "Sign Up", onTap: register),
-              const SizedBox(height: 25),
-              // Back to login
-              Row(
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    "Already have an account?",
+                  const Icon(
+                    Icons.person_add,
+                    size: 80,
+                    color: Color.fromARGB(255, 95, 106, 202),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Create Account",
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.inversePrimary,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: widget.onTap,
-                    child: Text(
-                      "Login now",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                        fontWeight: FontWeight.bold,
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Join us and start your journey",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 5,
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Full Name Input
+                        TextField(
+                          controller: nameController,
+                          decoration: InputDecoration(
+                            labelText: "Full Name",
+                            hintText: "Enter your full name",
+                            hintStyle: TextStyle(
+                              color: Colors.grey
+                                  .withOpacity(0.7), // Làm mờ hint text
+                            ),
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Email Input
+                        TextField(
+                          controller: emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            labelText: "Email",
+                            hintText: "Enter your email",
+                            hintStyle: TextStyle(
+                              color: Colors.grey.withOpacity(0.7),
+                            ),
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Phone Input
+                        TextField(
+                          controller: phoneController,
+                          keyboardType: TextInputType.phone,
+                          decoration: InputDecoration(
+                            labelText: "Phone",
+                            hintText: "Enter your phone number",
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Password Input
+                        TextField(
+                          controller: passwordController,
+                          obscureText: _isPasswordHidden,
+                          decoration: InputDecoration(
+                            labelText: "Password",
+                            hintText: "Enter your password",
+                            hintStyle: TextStyle(
+                              color: Colors.grey.withOpacity(0.7),
+                            ),
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordHidden
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordHidden = !_isPasswordHidden;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Confirm Password Input
+                        TextField(
+                          controller: confirmPasswordController,
+                          obscureText: _isConfirmPasswordHidden,
+                          decoration: InputDecoration(
+                            labelText: "Confirm Password",
+                            hintText: "Confirm your password",
+                            hintStyle: TextStyle(
+                              color: Colors.grey.withOpacity(0.7),
+                            ),
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isConfirmPasswordHidden
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isConfirmPasswordHidden =
+                                      !_isConfirmPasswordHidden;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Sign Up Button
+                        MyButton(
+                          text: "Sign Up",
+                          onTap: register,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Already have an account?",
+                        style: TextStyle(color: Colors.grey),
                       ),
-                    ),
+                      const SizedBox(width: 5),
+                      GestureDetector(
+                        onTap: widget.onTap,
+                        child: const Text(
+                          "Login now",
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 95, 106, 202),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 30),
                 ],
               ),
-              const SizedBox(height: 50),
-            ],
+            ),
           ),
         ),
       ),
