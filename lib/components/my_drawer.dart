@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:foi/auth/services/auth_service.dart';
 import 'package:foi/auth/services/login_or_register.dart';
 import 'package:foi/components/my_drawer_tile.dart';
+import 'package:foi/pages/order_history_page.dart';
 import 'package:foi/pages/profile_page.dart';
 import 'package:foi/pages/settings_page.dart';
 
@@ -11,25 +12,21 @@ class MyDrawer extends StatelessWidget {
   void logout(BuildContext context) {
     final authService = AuthService();
 
-    // Hiển thị vòng tròn tải khi đang đăng xuất
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
-    authService.signOut().then((_) {
-      // Đóng vòng tròn tải và chuyển về LoginOrRegister
-      Navigator.pop(context); // Đóng dialog tải
+    authService.signOut(context).then((_) {
+      Navigator.pop(context);
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const LoginOrRegister()),
         (route) => false,
       );
     }).catchError((e) {
-      // Đóng vòng tròn tải nếu có lỗi
       Navigator.pop(context);
-      // Hiển thị thông báo lỗi
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -56,16 +53,16 @@ class MyDrawer extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 100.0),
             child: Icon(
-              Icons.lock_open_rounded,
+              Icons.fastfood,
               size: 80,
-              color: Theme.of(context).colorScheme.inversePrimary,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
 
           Padding(
             padding: const EdgeInsets.all(25.0),
             child: Divider(
-              color: Theme.of(context).colorScheme.inversePrimary,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
 
@@ -84,6 +81,19 @@ class MyDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const ProfilePage()),
+              );
+            },
+          ),
+
+          // Order History
+          MyDrawerTile(
+            text: "O R D E R H I S T O R Y",
+            icon: Icons.history,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const OrderHistoryPage()),
               );
             },
           ),

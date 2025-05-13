@@ -21,6 +21,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final _authService = AuthService();
+  bool _isPasswordHidden = true;
 
   bool _isValidEmail(String email) {
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
@@ -101,42 +102,89 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void loginWithGoogle() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
     try {
-      await _authService.signInWithGoogle();
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
+      final userCredential = await _authService.signInWithGoogle();
+      if (userCredential == null) {
+        throw Exception("Google Sign-In cancelled or failed");
+      }
+      if (mounted) {
+        Navigator.pop(context);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      }
     } catch (e) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Google Sign-In Failed"),
-          content: Text(e.toString()),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("OK"),
-            ),
-          ],
-        ),
-      );
+      if (mounted) {
+        Navigator.pop(context);
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Google Sign-In Failed"),
+            content: Text(e.toString().replaceAll("Exception: ", "")),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
+        );
+      }
     }
   }
 
   void loginWithFacebook() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
     try {
       await _authService.signInWithFacebook();
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
+      if (mounted) {
+        Navigator.pop(context);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      }
     } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Facebook Sign-In Failed"),
+            content: Text(e.toString().replaceAll("Exception: ", "")),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+  void resetPassword() async {
+    String email = emailController.text.trim();
+
+    if (email.isEmpty) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text("Facebook Sign-In Failed"),
-          content: Text(e.toString()),
+          title: const Text("Error"),
+          content: const Text("Please enter your email"),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -145,6 +193,67 @@ class _LoginPageState extends State<LoginPage> {
           ],
         ),
       );
+      return;
+    }
+
+    if (!_isValidEmail(email)) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Error"),
+          content: const Text("Invalid email format"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      await _authService.resetPassword(email);
+      if (mounted) {
+        Navigator.pop(context);
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Success"),
+            content: const Text("Password reset email sent. Check your inbox."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Reset Password Failed"),
+            content: Text(e.toString().replaceAll("Exception: ", "")),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
+        );
+      }
     }
   }
 
@@ -170,7 +279,7 @@ class _LoginPageState extends State<LoginPage> {
                   const Icon(
                     Icons.fastfood,
                     size: 100,
-                    color: Colors.teal,
+                    color: Color.fromARGB(255, 95, 106, 202),
                   ),
                   const SizedBox(height: 20),
                   const Text(
@@ -206,31 +315,61 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     child: Column(
                       children: [
-                        MyTextField(
+                        // Email Input
+                        TextField(
                           controller: emailController,
-                          hintText: "Enter your email",
-                          labelText: "Email",
-                          obscureText: false,
                           keyboardType: TextInputType.emailAddress,
-                          prefixIcon: Icons.email,
+                          decoration: InputDecoration(
+                            labelText: "Email",
+                            hintText: "Enter your email",
+                            hintStyle: TextStyle(
+                              color: Colors.grey.withOpacity(0.7),
+                            ),
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 15),
-                        MyTextField(
+
+                        // Password Input
+                        TextField(
                           controller: passwordController,
-                          hintText: "Enter your password",
-                          labelText: "Password",
-                          obscureText: true,
-                          prefixIcon: Icons.lock,
+                          obscureText: _isPasswordHidden,
+                          decoration: InputDecoration(
+                            labelText: "Password",
+                            hintText: "Enter your password",
+                            hintStyle: TextStyle(
+                              color: Colors.grey.withOpacity(0.7),
+                            ),
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordHidden
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordHidden = !_isPasswordHidden;
+                                });
+                              },
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 10),
                         Align(
                           alignment: Alignment.centerRight,
                           child: GestureDetector(
-                            onTap: () {},
+                            onTap: resetPassword,
                             child: const Text(
                               "Forgot Password?",
                               style: TextStyle(
-                                color: Colors.teal,
+                                color: Color.fromARGB(255, 95, 106, 202),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -309,7 +448,7 @@ class _LoginPageState extends State<LoginPage> {
                         child: const Text(
                           "Register",
                           style: TextStyle(
-                            color: Colors.teal,
+                            color: Color.fromARGB(255, 95, 106, 202),
                             fontWeight: FontWeight.bold,
                           ),
                         ),

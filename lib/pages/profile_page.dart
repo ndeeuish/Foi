@@ -21,7 +21,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
-  // Khai báo các service sẽ được khởi tạo sau
   late DeliveryService _deliveryService;
   late Restaurant _restaurant;
   late GeocodingService _geocodingService;

@@ -4,45 +4,91 @@ import 'package:provider/provider.dart';
 // import 'package:foi/models/cart_item.dart' hide CartItem; // Uncomment if needed
 
 class MyReceipt extends StatelessWidget {
-  const MyReceipt({super.key});
+  final String receipt;
+  final String paymentStatus;
+
+  const MyReceipt({
+    super.key,
+    required this.receipt,
+    required this.paymentStatus,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Padding(
-      padding: const EdgeInsets.all(25.0),
+      padding: const EdgeInsets.all(20.0),
       child: Consumer<Restaurant>(
         builder: (context, restaurant, child) {
-          final receipt = restaurant.displayCartReceipt();
-          print(
-              'MyReceipt - Displaying receipt with Total: ${restaurant.formatPrice(restaurant.getTotalPrice())}');
+          final totalItems = restaurant.getTotalItemCount();
+          final totalPrice = restaurant.getTotalPrice();
+          final deliveryAddress = restaurant.deliveryAddress;
+
+          print('MyReceipt - Displaying receipt:');
+          print('Total Items: $totalItems');
+          print('Total Price: ${restaurant.formatPrice(totalPrice)}');
+          print('Delivery Address: $deliveryAddress');
+
           return SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Order Receipt",
-                  style: TextStyle(
-                    fontSize: 18,
+                  "Order Summary",
+                  style: textTheme.headlineSmall?.copyWith(
+                    color: colorScheme.primary,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.inversePrimary,
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.all(15),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                        color: Theme.of(context).colorScheme.secondary),
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: colorScheme.outline),
                   ),
-                  child: Text(
-                    receipt,
-                    style: const TextStyle(
-                      fontFamily: 'Roboto',
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 8),
+                      Text(
+                        'Payment Status',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        paymentStatus,
+                        style: textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w500,
+                          color: paymentStatus.toLowerCase() == 'paid'
+                              ? Colors.green[700]
+                              : Colors.orange[700],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Order Details',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        receipt,
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontFamily: 'Roboto',
+                          fontSize: 18,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

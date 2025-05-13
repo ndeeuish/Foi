@@ -30,7 +30,7 @@ class FoodTile extends StatelessWidget {
                     children: [
                       // Food name
                       Text(food.name),
-                      // Food price (formatted as 70.000₫)
+                      // Food price
                       Consumer<Restaurant>(
                         builder: (context, restaurant, child) => Text(
                           restaurant.formatPrice(food.price),
@@ -57,7 +57,7 @@ class FoodTile extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: const Color.fromARGB(255, 186, 173, 173),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: ClipRRect(
@@ -77,7 +77,7 @@ class FoodTile extends StatelessWidget {
 
         // Divider line
         Divider(
-          color: Theme.of(context).colorScheme.tertiary,
+          color: Colors.black.withOpacity(0.2),
           endIndent: 25,
           indent: 25,
         ),

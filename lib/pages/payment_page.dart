@@ -6,6 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:foi/models/restaurant.dart';
 import 'package:provider/provider.dart';
 import 'package:foi/payment/vnpay/vnpay_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'vnpay_payment_page.dart';
 
 class PaymentPage extends StatefulWidget {
   final double basePrice;
@@ -61,46 +63,18 @@ class _PaymentPageState extends State<PaymentPage> {
     }
 
     if (widget.selectedPaymentMethod == "VNPAY") {
-      print(
-          'PaymentPage - VNPAY selected. Calling VNPay service to get payment URL.');
-      final paymentUrl = await _vnpayService.getPaymentUrl(widget.totalPrice);
-
-      if (paymentUrl != null) {
-        print('PaymentPage - VNPAY - Payment URL received: $paymentUrl');
-        try {
-          final Uri uri = Uri.parse(paymentUrl);
-          print('PaymentPage - VNPAY - Parsed URI: $uri');
-          if (await canLaunchUrl(uri)) {
-            print('PaymentPage - VNPAY - URL can be launched. Launching...');
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
-            print('PaymentPage - VNPAY - URL launched successfully.');
-          } else {
-            print('PaymentPage - VNPAY - URL cannot be launched.');
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text("Không thể mở URL thanh toán VNPAY")),
-            );
-          }
-        } catch (e) {
-          print(
-              'PaymentPage - VNPAY - An error occurred while launching URL: $e');
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text("Đã xảy ra lỗi khi mở URL thanh toán")),
-          );
-        }
-      } else {
-        print('PaymentPage - VNPAY - Failed to get payment URL from service.');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Lỗi khi tạo URL thanh toán VNPAY")),
-        );
-      }
-      print('PaymentPage - VNPAY - Finished processing.');
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => VNPayPaymentPage(amount: widget.totalPrice),
+        ),
+      );
       return;
     }
 
     print(
         'PaymentPage - Payment method is ${widget.selectedPaymentMethod}. Showing confirmation dialog.');
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -136,17 +110,27 @@ class _PaymentPageState extends State<PaymentPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               print('PaymentPage - Confirmation dialog - Yes button pressed.');
               Navigator.pop(context);
+
+              // Tạo receipt và cập nhật payment status
+              final receipt = restaurant.displayCartReceipt();
               restaurant.updatePaymentStatus("Paid");
-              print('PaymentPage - Payment status updated to: Paid');
+
+              // Chuyển đến trang delivery progress với receipt và payment status
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const DeliveryProgressPage(),
+                  builder: (context) => DeliveryProgressPage(
+                    receipt: receipt,
+                    paymentStatus: "Paid",
+                  ),
                 ),
               );
+
+              // Clear cart sau khi đã chuyển trang
+              restaurant.clearCart();
             },
             child: const Text("Yes"),
           ),

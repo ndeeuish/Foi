@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foi/auth/services/auth_service.dart';
 import 'package:foi/components/my_button.dart';
-import 'package:foi/components/my_textfield.dart';
 import 'package:foi/pages/home_page.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -23,6 +22,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+  bool _isPasswordHidden = true; // Biến trạng thái để ẩn/hiện password
+  bool _isConfirmPasswordHidden = true; // Biến trạng thái cho confirm password
 
   void register() async {
     final _authService = AuthService();
@@ -120,7 +121,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   const Icon(
                     Icons.person_add,
                     size: 80,
-                    color: Colors.teal,
+                    color: Color.fromARGB(255, 95, 106, 202),
                   ),
                   const SizedBox(height: 20),
                   const Text(
@@ -156,46 +157,119 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     child: Column(
                       children: [
-                        MyTextField(
+                        // Full Name Input
+                        TextField(
                           controller: nameController,
-                          hintText: "Enter your full name",
-                          labelText: "Full Name",
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
+                          decoration: InputDecoration(
+                            labelText: "Full Name",
+                            hintText: "Enter your full name",
+                            hintStyle: TextStyle(
+                              color: Colors.grey
+                                  .withOpacity(0.7), // Làm mờ hint text
+                            ),
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 10),
-                        MyTextField(
+
+                        // Email Input
+                        TextField(
                           controller: emailController,
-                          hintText: "Enter your email",
-                          labelText: "Email",
-                          obscureText: false,
                           keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            labelText: "Email",
+                            hintText: "Enter your email",
+                            hintStyle: TextStyle(
+                              color: Colors.grey.withOpacity(0.7),
+                            ),
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 10),
-                        MyTextField(
+
+                        // Phone Input
+                        TextField(
                           controller: phoneController,
-                          hintText: "Enter your phone number",
-                          labelText: "Phone",
-                          obscureText: false,
                           keyboardType: TextInputType.phone,
+                          decoration: InputDecoration(
+                            labelText: "Phone",
+                            hintText: "Enter your phone number",
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 10),
-                        MyTextField(
+
+                        // Password Input
+                        TextField(
                           controller: passwordController,
-                          hintText: "Enter your password",
-                          labelText: "Password",
-                          obscureText: true,
-                          keyboardType: TextInputType.text,
+                          obscureText: _isPasswordHidden,
+                          decoration: InputDecoration(
+                            labelText: "Password",
+                            hintText: "Enter your password",
+                            hintStyle: TextStyle(
+                              color: Colors.grey.withOpacity(0.7),
+                            ),
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordHidden
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordHidden = !_isPasswordHidden;
+                                });
+                              },
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 10),
-                        MyTextField(
+
+                        // Confirm Password Input
+                        TextField(
                           controller: confirmPasswordController,
-                          hintText: "Confirm your password",
-                          labelText: "Confirm Password",
-                          obscureText: true,
-                          keyboardType: TextInputType.text,
+                          obscureText: _isConfirmPasswordHidden,
+                          decoration: InputDecoration(
+                            labelText: "Confirm Password",
+                            hintText: "Confirm your password",
+                            hintStyle: TextStyle(
+                              color: Colors.grey.withOpacity(0.7),
+                            ),
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isConfirmPasswordHidden
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isConfirmPasswordHidden =
+                                      !_isConfirmPasswordHidden;
+                                });
+                              },
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 20),
+
+                        // Sign Up Button
                         MyButton(
                           text: "Sign Up",
                           onTap: register,
@@ -217,7 +291,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: const Text(
                           "Login now",
                           style: TextStyle(
-                            color: Colors.teal,
+                            color: Color.fromARGB(255, 95, 106, 202),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
