@@ -157,118 +157,152 @@ class _PaymentPageState extends State<PaymentPage> {
         foregroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text("Checkout"),
       ),
-      body: Column(
-        children: [
-          if (widget.selectedPaymentMethod == "Card")
-            Column(
-              children: [
-                CreditCardWidget(
-                  cardNumber: cardNumber,
-                  expiryDate: expiryDate,
-                  cardHolderName: cardHolderName,
-                  cvvCode: cvvCode,
-                  showBackView: isCvvFocused,
-                  onCreditCardWidgetChange: (p0) {},
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Phương thức thanh toán Cash
+            if (widget.selectedPaymentMethod == "Cash")
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green),
                 ),
-                CreditCardForm(
-                  cardNumber: cardNumber,
-                  expiryDate: expiryDate,
-                  cardHolderName: cardHolderName,
-                  cvvCode: cvvCode,
-                  onCreditCardModelChange: (data) {
-                    setState(() {
-                      cardNumber = data.cardNumber;
-                      expiryDate = data.expiryDate;
-                      cardHolderName = data.cardHolderName;
-                      cvvCode = data.cvvCode;
-                      isCvvFocused = data.isCvvFocused;
-                    });
-                  },
-                  formKey: formKey,
+                child: Row(
+                  children: [
+                    const Icon(Icons.money, color: Colors.green, size: 40),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "Cash Payment Selected",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            "You will pay with cash upon delivery.",
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Phương thức thanh toán VNPay
+            if (widget.selectedPaymentMethod == "VNPAY")
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.qr_code_scanner,
+                        size: 100, color: Colors.blue),
+                    const SizedBox(height: 12),
+                    const Text(
+                      "VNPay Payment Selected",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "You will be redirected to the VNPay payment gateway to complete your payment.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+
+            const SizedBox(height: 24),
+
+            // Payment Summary Section
+            const Text(
+              "Payment Summary",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Cart Total:", style: TextStyle(fontSize: 16)),
+                Text(
+                  restaurant.formatPrice(widget.basePrice),
+                  style: const TextStyle(fontSize: 16),
                 ),
               ],
             ),
-          if (widget.selectedPaymentMethod == "VNPAY")
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  Icon(Icons.qr_code_scanner, size: 100, color: Colors.blue),
-                  SizedBox(height: 10),
-                  Text("You will be redirected to the VNPAY payment gateway"),
-                ],
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text("Cart Total:", style: TextStyle(fontSize: 16)),
-                    Text(
-                      restaurant.formatPrice(widget.basePrice),
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ],
+                const Text("Delivery Fee:", style: TextStyle(fontSize: 16)),
+                Text(
+                  restaurant.formatPrice(widget.deliveryFee * 1000),
+                  style: const TextStyle(fontSize: 16),
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text("Delivery Fee:", style: TextStyle(fontSize: 16)),
-                    Text(
-                      restaurant.formatPrice(widget.deliveryFee * 1000),
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ],
-                ),
-                if (widget.discountAmount > 0) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Discount (${widget.voucherCode ?? ''}):",
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      Text(
-                        "-${restaurant.formatPrice(widget.discountAmount)}",
-                        style:
-                            const TextStyle(fontSize: 16, color: Colors.green),
-                      ),
-                    ],
+              ],
+            ),
+            if (widget.discountAmount > 0) ...[
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Discount (${widget.voucherCode ?? ''}):",
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  Text(
+                    "-${restaurant.formatPrice(widget.discountAmount)}",
+                    style: const TextStyle(fontSize: 16, color: Colors.green),
                   ),
                 ],
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Final Total:",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      restaurant.formatPrice(widget.totalPrice),
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ],
+              ),
+            ],
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Final Total:",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  restaurant.formatPrice(widget.totalPrice),
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
-          ),
-          MyButton(
-            text: widget.selectedPaymentMethod == "Cash"
-                ? "Confirm Order"
-                : "Pay now",
-            onTap: userTappedPay,
-          ),
-          const SizedBox(height: 25),
-        ],
+
+            const SizedBox(height: 24),
+
+            // Confirm Order Button
+            MyButton(
+              text: widget.selectedPaymentMethod == "Cash"
+                  ? "Confirm Order"
+                  : "Pay now",
+              onTap: userTappedPay,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -22,12 +22,14 @@ class FirebaseService {
             (e) => e.toString() == 'FoodCategory.${data['category']}',
             orElse: () => FoodCategory.burgers,
           ),
-          availableAddons: (data['availableAddons'] as List<dynamic>?)?.map((addon) {
-            return Addon(
-              name: addon['name'] ?? '',
-              price: (addon['price'] ?? 0).toDouble(),
-            );
-          }).toList() ?? [],
+          availableAddons:
+              (data['availableAddons'] as List<dynamic>?)?.map((addon) {
+                    return Addon(
+                      name: addon['name'] ?? '',
+                      price: (addon['price'] ?? 0).toDouble(),
+                    );
+                  }).toList() ??
+                  [],
         );
       }).toList();
     } catch (e) {
@@ -45,10 +47,12 @@ class FirebaseService {
         'imagePath': food.imagePath,
         'price': food.price,
         'category': food.category.toString().split('.').last,
-        'availableAddons': food.availableAddons.map((addon) => {
-          'name': addon.name,
-          'price': addon.price,
-        }).toList(),
+        'availableAddons': food.availableAddons
+            .map((addon) => {
+                  'name': addon.name,
+                  'price': addon.price,
+                })
+            .toList(),
       });
     } catch (e) {
       print('Error adding food item: $e');
@@ -65,10 +69,12 @@ class FirebaseService {
         'imagePath': food.imagePath,
         'price': food.price,
         'category': food.category.toString().split('.').last,
-        'availableAddons': food.availableAddons.map((addon) => {
-          'name': addon.name,
-          'price': addon.price,
-        }).toList(),
+        'availableAddons': food.availableAddons
+            .map((addon) => {
+                  'name': addon.name,
+                  'price': addon.price,
+                })
+            .toList(),
       });
     } catch (e) {
       print('Error updating food item: $e');
@@ -85,4 +91,4 @@ class FirebaseService {
       rethrow;
     }
   }
-} 
+}

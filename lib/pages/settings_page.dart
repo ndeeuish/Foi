@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:foi/themes/theme_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:foi/services/seed_data.dart';
 import 'package:foi/services/auth_service.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -13,44 +12,44 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool _isAdmin = false;
+  // bool _isAdmin = false;
 
   @override
   void initState() {
     super.initState();
-    _checkAdminRole();
+    // _checkAdminRole();
   }
 
-  Future<void> _checkAdminRole() async {
-    final hasAdminRole = await isAdmin();
-    setState(() {
-      _isAdmin = hasAdminRole;
-    });
-  }
+  // Future<void> _checkAdminRole() async {
+  //   // final hasAdminRole = await isAdmin();
+  //   setState(() {
+  //     _isAdmin = hasAdminRole;
+  //   });
+  // }
 
-  Future<void> _seedData(BuildContext context) async {
-    try {
-      final seedData = SeedData();
-      await seedData.seedFoodData();
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Successfully seeded sample data'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error seeding data: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
+  // Future<void> _seedData(BuildContext context) async {
+  //   try {
+  //     // final seedData = SeedData();
+  //     // await seedData.seedFoodData();
+  //     if (context.mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //           content: Text('Successfully seeded sample data'),
+  //           backgroundColor: Colors.green,
+  //         ),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     if (context.mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text('Error seeding data: $e'),
+  //           backgroundColor: Colors.red,
+  //         ),
+  //       );
+  //     }
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -92,13 +91,13 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
           ),
-          if (_isAdmin)
-            ListTile(
-              leading: const Icon(Icons.data_array),
-              title: const Text('Seed Sample Data'),
-              subtitle: const Text('Add sample food items to the database'),
-              onTap: () => _seedData(context),
-            ),
+          // if (_isAdmin)
+          //   ListTile(
+          //     leading: const Icon(Icons.data_array),
+          //     title: const Text('Seed Sample Data'),
+          //     subtitle: const Text('Add sample food items to the database'),
+          //     onTap: () => _seedData(context),
+          //   ),
         ],
       ),
     );

@@ -51,13 +51,13 @@ class Restaurant extends ChangeNotifier {
               'Restaurant - Loaded user address from profile: $_deliveryAddress');
         } else {
           print('Restaurant - No address found in user profile');
-          _deliveryAddress = "";
+          _deliveryAddress = ""; // Reset to empty string if no address found
         }
         notifyListeners();
       }
     } catch (e) {
       print('Restaurant - Error initializing user address: $e');
-      _deliveryAddress = "";
+      _deliveryAddress = ""; // Reset to empty string on error
       notifyListeners();
     }
   }
@@ -253,17 +253,19 @@ class Restaurant extends ChangeNotifier {
 
   // Add to cart
   void addToCart(Food food, List<Addon> selectedAddons) {
-    final existingIndex = _cart.indexWhere((item) =>
-        item.food == food && listEquals(item.selectedAddons, selectedAddons));
+    CartItem? cartItem = _cart.firstWhere(
+      (item) {
+        bool isSameFood = item.food == food;
+        bool isSameAddons = listEquals(item.selectedAddons, selectedAddons);
+        return isSameFood && isSameAddons;
+      },
+      orElse: () => CartItem(food: food, selectedAddons: selectedAddons),
+    );
 
-    if (existingIndex >= 0) {
-      _cart[existingIndex].quantity++;
+    if (_cart.contains(cartItem)) {
+      cartItem.quantity++;
     } else {
-      _cart.add(CartItem(
-        food: food,
-        selectedAddons: selectedAddons,
-        quantity: 1,
-      ));
+      _cart.add(cartItem);
     }
     notifyListeners();
   }
@@ -395,7 +397,7 @@ class Restaurant extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Reset delivery address
+  // reset delivery address
   void resetDeliveryAddress() {
     _deliveryAddress = "";
     notifyListeners();

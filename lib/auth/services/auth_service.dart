@@ -62,9 +62,6 @@ class AuthService {
         restaurant.resetDeliveryAddress();
         restaurant.clearCart();
       }
-
-      await _googleSignIn.signOut();
-      await _firebaseAuth.signOut();
     } catch (e) {
       throw Exception("Error during sign out: $e");
     }

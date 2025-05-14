@@ -102,7 +102,7 @@ class _CartPageState extends State<CartPage> {
           final voucherCode = restaurant.voucherCode ?? 'None';
           final totalPrice = restaurant.getTotalPrice();
           final deliveryFee = restaurant.deliveryFee == 0
-              ? 'N/A'
+              ? '0'
               : restaurant.formatPrice(restaurant.deliveryFee * 1000);
           print(
               'CartPage - basePrice=$basePrice, discountAmount=$discountAmount, voucherCode=$voucherCode, totalPrice=$totalPrice, deliveryFee=$deliveryFee');
@@ -113,7 +113,7 @@ class _CartPageState extends State<CartPage> {
               centerTitle: true,
               elevation: 0,
               backgroundColor: colorScheme.surface,
-              foregroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onSurface,
               actions: [
                 IconButton(
                   onPressed: userCart.isEmpty
@@ -256,16 +256,12 @@ class _CartPageState extends State<CartPage> {
                                   color: colorScheme.primary),
                               items: <String>[
                                 'Cash',
-                                'Card',
                                 'VNPAY'
                               ].map<DropdownMenuItem<String>>((String value) {
                                 IconData icon;
                                 switch (value) {
                                   case 'Cash':
                                     icon = Icons.money;
-                                    break;
-                                  case 'Card':
-                                    icon = Icons.credit_card;
                                     break;
                                   case 'VNPAY':
                                     icon = Icons.payment;
@@ -437,30 +433,43 @@ class _CartPageState extends State<CartPage> {
                         ),
                       ],
                     ),
-                    child: MyButton(
-                      text: 'Checkout · ${restaurant.formatPrice(totalPrice)}',
-                      onTap: userCart.isEmpty ||
-                              restaurant.deliveryAddress.isEmpty ||
-                              _selectedPaymentMethod == 'Not selected'
-                          ? null
-                          : () {
-                              print(
-                                  'CartPage - Navigating to PaymentPage with method: $_selectedPaymentMethod');
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PaymentPage(
-                                    selectedPaymentMethod:
-                                        _selectedPaymentMethod,
-                                    basePrice: basePrice,
-                                    discountAmount: discountAmount,
-                                    voucherCode: restaurant.voucherCode,
-                                    deliveryFee: restaurant.deliveryFee,
-                                    totalPrice: totalPrice,
-                                  ),
+                    child: Builder(
+                      builder: (context) {
+                        return MyButton(
+                          text:
+                              'Checkout · ${restaurant.formatPrice(totalPrice)}',
+                          onTap: () {
+                            if (restaurant.deliveryAddress.isEmpty) {
+                              print('Delivery address is empty');
+                              ScaffoldMessenger.of(context)
+                                  .hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text("Please enter a delivery address."),
+                                  backgroundColor: Colors.red,
                                 ),
                               );
-                            },
+                              return;
+                            }
+
+                            print('Navigating to PaymentPage...');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PaymentPage(
+                                  selectedPaymentMethod: _selectedPaymentMethod,
+                                  basePrice: basePrice,
+                                  discountAmount: discountAmount,
+                                  voucherCode: restaurant.voucherCode,
+                                  deliveryFee: restaurant.deliveryFee,
+                                  totalPrice: totalPrice,
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
                     ),
                   ),
           );
