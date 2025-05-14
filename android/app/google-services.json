@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "234863105486",
+    "project_id": "fooddelivery-c4d4d",
+    "storage_bucket": "fooddelivery-c4d4d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:234863105486:android:806e880a352a97430e879f",
+        "android_client_info": {
+          "package_name": "com.example.foi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "234863105486-qs365m5ib42b3j73oqgiv357j98mmq59.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.foi",
+            "certificate_hash": "504b400df1c5747dcd5a25da7e00ab04a8d6e0da"
+          }
+        },
+        {
+          "client_id": "234863105486-f6grmfvs2epd9cin1ic03cimbnard7h8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdCamku9Mjz-bCIhiRXrzVUxZUbys0mgM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "234863105486-f6grmfvs2epd9cin1ic03cimbnard7h8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "234863105486-nm2060anvqejiumgsldulu1mk9uqpib1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.foi"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

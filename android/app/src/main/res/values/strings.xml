@@ -1,0 +1,6 @@
+<resources>
+<string name="facebook_app_id">1619880675382317</string>
+<string name="fb_login_protocol_scheme">fb1234</string>
+<string name="facebook_client_token">ec26b44b9f9c86143733e72f2655a43d</string>
+<string name="app_name">Food Oi</string>
+</resources>
