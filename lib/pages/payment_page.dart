@@ -74,7 +74,6 @@ class _PaymentPageState extends State<PaymentPage> {
 
     print(
         'PaymentPage - Payment method is ${widget.selectedPaymentMethod}. Showing confirmation dialog.');
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -115,8 +114,9 @@ class _PaymentPageState extends State<PaymentPage> {
               Navigator.pop(context);
 
               // Tạo receipt và cập nhật payment status
+              restaurant.updatePaymentStatus("Pending");
+              final status = restaurant.paymentStatus;
               final receipt = restaurant.displayCartReceipt();
-              restaurant.updatePaymentStatus("Paid");
 
               // Chuyển đến trang delivery progress với receipt và payment status
               Navigator.push(
@@ -124,7 +124,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 MaterialPageRoute(
                   builder: (context) => DeliveryProgressPage(
                     receipt: receipt,
-                    paymentStatus: "Paid",
+                    paymentStatus: status,
                   ),
                 ),
               );

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:foi/auth/services/delivery_service.dart';
 import 'package:foi/models/restaurant.dart';
 import 'package:provider/provider.dart';
-import 'package:latlong2/latlong.dart';
+// import 'package:latlong2/latlong.dart';
 
 class MyCurrentLocation extends StatelessWidget {
   MyCurrentLocation({super.key});

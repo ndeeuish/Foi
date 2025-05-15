@@ -21,7 +21,6 @@ class DeliveryProgressPage extends StatefulWidget {
 class _DeliveryProgressPageState extends State<DeliveryProgressPage> {
   //get access to db
   FirestoreService db = FirestoreService();
-  bool _isLoading = true;
 
   @override
   void initState() {
@@ -39,111 +38,65 @@ class _DeliveryProgressPageState extends State<DeliveryProgressPage> {
       await db.saveOrderToDatabase(widget.receipt, widget.paymentStatus);
 
       // Clear cart sau khi đã lưu order
-      restaurant.clearCart();
-
-      setState(() {
-        _isLoading = false;
-      });
+      //restaurant.clearCart();
     } catch (e) {
       print('DeliveryProgressPage - Error saving order: $e');
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text(
-          "Delivery in progress",
-          style: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0,
+        title: const Text("Delivery in progress..."),
+        backgroundColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () {
+            final restaurant = context.read<Restaurant>();
+            restaurant.clearCart();
             Navigator.of(context).popUntil((route) => route.isFirst);
           },
         ),
       ),
       bottomNavigationBar: _buildBottomNavBar(context),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SafeArea(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    // Order receipt
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.receipt_long,
-                                    color: colorScheme.primary,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    "Order Details",
-                                    style: textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const Divider(height: 24),
-                              MyReceipt(
-                                receipt: widget.receipt,
-                                paymentStatus: widget.paymentStatus,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Order Details",
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 10),
+            Text(widget.receipt),
+            const SizedBox(height: 20),
+            Text(
+              "Payment Status: ${widget.paymentStatus}",
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
               ),
             ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildBottomNavBar(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -153,106 +106,53 @@ class _DeliveryProgressPageState extends State<DeliveryProgressPage> {
         children: [
           // Driver profile picture
           Container(
-            width: 60,
-            height: 60,
+            width: 50,
+            height: 50,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [
-                  colorScheme.primary,
-                  colorScheme.secondary,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: colorScheme.primary.withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+              color: Theme.of(context).colorScheme.primary,
             ),
             child: const Icon(
               Icons.person,
               color: Colors.white,
-              size: 32,
+              size: 30,
             ),
           ),
-          const SizedBox(width: 16),
-
+          const SizedBox(width: 15),
           // Driver details
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
+                const Text(
                   "Your driver",
-                  style: textTheme.titleMedium?.copyWith(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      "4.8",
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      "- Nguyễn Văn A",
-                      style: textTheme.bodyMedium,
-                    ),
-                  ],
+                Text(
+                  "Arriving in 10-15 minutes",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                  ),
                 ),
               ],
             ),
           ),
-
           // Contact buttons
           Row(
             children: [
-              // Call button
-              Container(
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  onPressed: () {},
-                  icon: Icon(
-                    Icons.phone,
-                    color: colorScheme.primary,
-                  ),
-                  tooltip: "Call Driver",
-                ),
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.phone),
               ),
-              const SizedBox(width: 12),
-
-              // Message button
-              Container(
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  onPressed: () {},
-                  icon: Icon(
-                    Icons.message,
-                    color: colorScheme.secondary,
-                  ),
-                  tooltip: "Message Driver",
-                ),
+              IconButton(
+                onPressed: () {
+                  // TODO: Implement message functionality
+                },
+                icon: const Icon(Icons.message),
               ),
             ],
           ),

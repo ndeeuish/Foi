@@ -152,64 +152,14 @@ class FirestoreService {
     }
   }
 
-  // Seed sample data vào database
-  // Future<void> seedSampleData() async {
-  //   try {
-  //     // Sample restaurants
-  //     final restaurants = [
-  //       {
-  //         'name': 'Pizza Place',
-  //         'image': 'https://example.com/pizza.jpg',
-  //         'rating': 4.5,
-  //         'deliveryTime': '30-45 min',
-  //         'deliveryFee': 2.0,
-  //         'menu': [
-  //           {
-  //             'name': 'Margherita Pizza',
-  //             'price': 12.99,
-  //             'description': 'Classic tomato and mozzarella pizza',
-  //             'image': 'https://example.com/margherita.jpg',
-  //           },
-  //           {
-  //             'name': 'Pepperoni Pizza',
-  //             'price': 14.99,
-  //             'description': 'Pizza with pepperoni and cheese',
-  //             'image': 'https://example.com/pepperoni.jpg',
-  //           },
-  //         ],
-  //       },
-  //       {
-  //         'name': 'Burger Joint',
-  //         'image': 'https://example.com/burger.jpg',
-  //         'rating': 4.3,
-  //         'deliveryTime': '20-35 min',
-  //         'deliveryFee': 1.5,
-  //         'menu': [
-  //           {
-  //             'name': 'Classic Burger',
-  //             'price': 8.99,
-  //             'description': 'Beef patty with lettuce and tomato',
-  //             'image': 'https://example.com/classic-burger.jpg',
-  //           },
-  //           {
-  //             'name': 'Cheese Burger',
-  //             'price': 9.99,
-  //             'description': 'Burger with extra cheese',
-  //             'image': 'https://example.com/cheese-burger.jpg',
-  //           },
-  //         ],
-  //       },
-  //     ];
-
-  //     // Thêm restaurants vào collection
-  //     for (var restaurant in restaurants) {
-  //       await _firestore.collection('restaurants').add(restaurant);
-  //     }
-
-  //     print('Sample data seeded successfully');
-  //   } catch (e) {
-  //     print('Error seeding sample data: $e');
-  //     rethrow;
-  //   }
-  // }
+  Future<void> updateOrderStatus(String orderId, String status) async {
+    try {
+      final orderRef = _firestore.collection('orders').doc(orderId);
+      await orderRef.update({'paymentStatus': status});
+      print('Order $orderId updated to status: $status');
+    } catch (e) {
+      print('Error updating order status: $e');
+      throw Exception('Failed to update order status');
+    }
+  }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foi/components/my_quantity_selector.dart';
-import 'package:foi/models/cart_item.dart' hide CartItem;
+// import 'package:foi/models/cart_item.dart' hide CartItem;
 import 'package:foi/models/restaurant.dart';
 import 'package:provider/provider.dart';
 
@@ -26,7 +26,7 @@ class MyCartTile extends StatelessWidget {
                   // Food image
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.asset(
+                    child: Image.network(
                       cartItem.food.imagePath,
                       height: 100,
                       width: 100,

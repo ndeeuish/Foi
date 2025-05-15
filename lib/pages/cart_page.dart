@@ -103,7 +103,7 @@ class _CartPageState extends State<CartPage> {
           final totalPrice = restaurant.getTotalPrice();
           final deliveryFee = restaurant.deliveryFee == 0
               ? '0'
-              : restaurant.formatPrice(restaurant.deliveryFee * 1000);
+              : restaurant.formatPrice(restaurant.deliveryFee);
           print(
               'CartPage - basePrice=$basePrice, discountAmount=$discountAmount, voucherCode=$voucherCode, totalPrice=$totalPrice, deliveryFee=$deliveryFee');
 

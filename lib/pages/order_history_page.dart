@@ -43,6 +43,25 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     }
   }
 
+  Future<void> _updateOrderStatus(String orderId, String status) async {
+    try {
+      await _firestoreService.updateOrderStatus(orderId, status);
+      setState(() {
+        final orderIndex = _orders.indexWhere((order) => order['id'] == orderId);
+        if (orderIndex != -1) {
+          _orders[orderIndex]['paymentStatus'] = status;
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Order status updated to $status!")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.toString()}")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -194,6 +213,16 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                                                 height: 1.5,
                                               ),
                                             ),
+                                            const SizedBox(height: 16),
+                                            if (order['paymentStatus'] == 'Paid' ||
+                                                order['paymentStatus'] == 'Pending')
+                                              ElevatedButton(
+                                                onPressed: () async {
+                                                  await _updateOrderStatus(
+                                                      orderId, "Delivered");
+                                                },
+                                                child: const Text("Confirm Delivery"),
+                                              ),
                                           ],
                                         ),
                                         crossFadeState: isExpanded
@@ -222,6 +251,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
         return Colors.orange;
       case 'failed':
         return Colors.red;
+      case 'delivered':
+        return Colors.blue;
       default:
         return Colors.grey;
     }
